@@ -6,15 +6,20 @@
     "description": "All UIKit/SwiftUI updates must happen on the main thread. Use @MainActor or DispatchQueue.main.",
     "severity": "high",
     "weight": 9,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": true,
     "auto_fix_hint": "Annotate the function with @MainActor or wrap with await MainActor.run { }",
-    "tags": ["threading", "crash-prevention", "swiftui"],
+    "tags": [
+      "threading",
+      "crash-prevention",
+      "swiftui"
+    ],
     "examples": {
       "bad": "Task {\n  let user = try await api.fetchUser()\n  self.nameLabel.text = user.name // ❌ UI update off main thread\n}",
       "good": "Task {\n  let user = try await api.fetchUser()\n  await MainActor.run { self.nameLabel.text = user.name }\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:51:46.795785+00:00"
   },
   {
     "id": "CONC-002",
@@ -23,15 +28,19 @@
     "description": "Prefer Swift's structured concurrency (async/await, TaskGroup) over raw DispatchQueue for new code.",
     "severity": "medium",
     "weight": 6,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Replace DispatchQueue.global().async with Task { } or async let",
-    "tags": ["swift-concurrency", "async-await"],
+    "tags": [
+      "swift-concurrency",
+      "async-await"
+    ],
     "examples": {
       "bad": "DispatchQueue.global(qos: .background).async {\n  let result = heavyComputation()\n  DispatchQueue.main.async { self.update(result) }\n}",
       "good": "Task.detached(priority: .background) {\n  let result = await heavyComputation()\n  await MainActor.run { self.update(result) }\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:51:47.737121+00:00"
   },
   {
     "id": "CONC-003",
@@ -40,15 +49,20 @@
     "description": "Shared mutable state accessed from multiple concurrent contexts must be protected by an actor or @MainActor.",
     "severity": "critical",
     "weight": 10,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Wrap the type in an actor or add @MainActor annotation",
-    "tags": ["data-race", "actor", "thread-safety"],
+    "tags": [
+      "data-race",
+      "actor",
+      "thread-safety"
+    ],
     "examples": {
       "bad": "class Cache {\n  var data: [String: Any] = [:] // ❌ Unsafe shared mutable state\n}",
       "good": "actor Cache {\n  private var data: [String: Any] = [:]\n  func set(_ value: Any, for key: String) { data[key] = value }\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:51:48.869925+00:00"
   },
   {
     "id": "CONC-004",
@@ -57,15 +71,19 @@
     "description": "Long-running Tasks must check for cancellation to avoid wasted work and resource leaks.",
     "severity": "medium",
     "weight": 6,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Add try Task.checkCancellation() at loop checkpoints or use withTaskCancellationHandler",
-    "tags": ["swift-concurrency", "resource-management"],
+    "tags": [
+      "swift-concurrency",
+      "resource-management"
+    ],
     "examples": {
       "bad": "Task {\n  for item in largeList {\n    process(item) // Never checks cancellation\n  }\n}",
       "good": "Task {\n  for item in largeList {\n    try Task.checkCancellation()\n    process(item)\n  }\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:51:50.602598+00:00"
   },
   {
     "id": "CONC-005",
@@ -74,14 +92,19 @@
     "description": "Synchronous network calls, file I/O, or heavy computation on the main thread freeze the UI.",
     "severity": "critical",
     "weight": 9,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Move to background Task or use async API",
-    "tags": ["performance", "ux", "thread-safety"],
+    "tags": [
+      "performance",
+      "ux",
+      "thread-safety"
+    ],
     "examples": {
       "bad": "// Called from viewDidLoad:\nlet data = try! Data(contentsOf: remoteURL) // ❌ Blocks main thread",
       "good": "Task {\n  let (data, _) = try await URLSession.shared.data(from: remoteURL)\n  await MainActor.run { self.processData(data) }\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:51:54.154121+00:00"
   }
 ]

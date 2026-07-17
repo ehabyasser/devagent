@@ -96,6 +96,10 @@ class CodeReviewAgent(BaseAgent):
     # ── Stage 2: PLAN ───────────────────────────────────────────────────────
     async def plan(self, understood: dict) -> dict:
         active_rules = get_all_rules(enabled=True)
+        if not active_rules:
+            raise ValueError(
+                "No active rules found. Enable at least one rule in the Rules Manager before running a code review."
+            )
         rules_block = _build_rules_block(active_rules)
         system_prompt = _SYSTEM_PROMPT_TEMPLATE.format(
             count=len(active_rules),

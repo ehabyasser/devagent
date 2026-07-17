@@ -53,13 +53,21 @@ const DOM = {
 const STAGE_ORDER = ['understand', 'plan', 'tool', 'validate', 'respond'];
 const STAGE_MSGS  = {
   understand: 'Parsing your input…',
+  plan:       'Building review plan against active rules…',
+  tool:       'Preparing code analysis context…',
+  validate:   'Validating inputs…',
+  respond:    'Calling AI for structured review…',
+};
+const STAGE_MSGS_TESTGEN = {
+  understand: 'Parsing your feature description…',
   plan:       'Planning tool calls…',
   tool:       'Running tools (Jira / diff parser / secrets)…',
   validate:   'Validating outputs…',
   respond:    'Calling LLM for response…',
 };
 
-function animateStages() {
+function animateStages(msgs) {
+  const msgMap = msgs || STAGE_MSGS;
   let idx = 0;
   clearStageAnimation();
 
@@ -71,7 +79,8 @@ function animateStages() {
     if (idx < STAGE_ORDER.length) {
       const el = getEl('stage-' + STAGE_ORDER[idx]);
       if (el) el.classList.add('active');
-      DOM.loadingMessage.textContent = STAGE_MSGS[STAGE_ORDER[idx]] || 'Processing…';
+      var lm = document.getElementById('loadingMessage');
+      if (lm) lm.textContent = msgMap[STAGE_ORDER[idx]] || 'Processing…';
       idx++;
       const delays = [600, 700, 2200, 600, 400];
       activeStageFn = setTimeout(advance, delays[idx - 1] !== undefined ? delays[idx - 1] : 800);
@@ -222,7 +231,7 @@ DOM.runTestGen.addEventListener('click', async function() {
 
   setLoading(true, DOM.runTestGen);
   showState('loadingState');
-  animateStages();
+  animateStages(STAGE_MSGS_TESTGEN);
 
   try {
     var body = {};

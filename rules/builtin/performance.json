@@ -6,15 +6,19 @@
     "description": "Expensive resources (images, large datasets) must be loaded lazily, not in viewDidLoad or init.",
     "severity": "medium",
     "weight": 6,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Use lazy var or load on demand in the getter",
-    "tags": ["performance", "startup-time"],
+    "tags": [
+      "performance",
+      "startup-time"
+    ],
     "examples": {
       "bad": "class DashboardVC: UIViewController {\n  let chart = ExpensiveChartView() // ❌ Loaded eagerly at init\n}",
       "good": "class DashboardVC: UIViewController {\n  lazy var chart: ExpensiveChartView = { ExpensiveChartView() }()\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:07.654289+00:00"
   },
   {
     "id": "PERF-002",
@@ -23,15 +27,20 @@
     "description": "Lists of unbounded data (transactions, notifications) must use pagination or infinite scroll, not fetching all records.",
     "severity": "high",
     "weight": 8,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Add page/offset parameters to the API call and implement incremental loading",
-    "tags": ["performance", "scalability", "ux"],
+    "tags": [
+      "performance",
+      "scalability",
+      "ux"
+    ],
     "examples": {
       "bad": "let transactions = try await api.getAllTransactions() // ❌ Returns thousands of rows",
       "good": "let transactions = try await api.getTransactions(page: currentPage, limit: 20)"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:10.071069+00:00"
   },
   {
     "id": "PERF-003",
@@ -40,15 +49,19 @@
     "description": "Images loaded from network must be cached. Re-downloading on every cell reuse degrades performance.",
     "severity": "medium",
     "weight": 6,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Use SDWebImage, Kingfisher, or AsyncImage with caching policy",
-    "tags": ["performance", "bandwidth"],
+    "tags": [
+      "performance",
+      "bandwidth"
+    ],
     "examples": {
       "bad": "// In cellForRowAt:\nURLSession.shared.dataTask(with: imageURL) { data, _, _ in\n  cell.imageView.image = UIImage(data: data!)\n}.resume()",
       "good": "cell.imageView.sd_setImage(with: imageURL, placeholderImage: UIImage(named: \"placeholder\"))"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:11.654285+00:00"
   },
   {
     "id": "PERF-004",
@@ -57,14 +70,18 @@
     "description": "Fetching individual records inside a loop causes N+1 API/DB calls. Batch fetch instead.",
     "severity": "high",
     "weight": 7,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Batch-fetch all required records in a single API call with IDs list",
-    "tags": ["performance", "database"],
+    "tags": [
+      "performance",
+      "database"
+    ],
     "examples": {
       "bad": "for transaction in transactions {\n  let merchant = try await api.getMerchant(id: transaction.merchantId) // ❌ N API calls\n}",
       "good": "let ids = transactions.map(\\.merchantId)\nlet merchants = try await api.getMerchants(ids: ids) // ✅ 1 API call"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:12.779201+00:00"
   }
 ]

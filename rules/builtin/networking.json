@@ -6,15 +6,21 @@
     "description": "All network connections must use HTTPS. ATS exceptions in Info.plist must be justified and minimal.",
     "severity": "critical",
     "weight": 9,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Remove NSAllowsArbitraryLoads from Info.plist; use HTTPS endpoints only",
-    "tags": ["ats", "https", "owasp-m3", "pci-dss"],
+    "tags": [
+      "ats",
+      "https",
+      "owasp-m3",
+      "pci-dss"
+    ],
     "examples": {
       "bad": "// Info.plist:\n// NSAllowsArbitraryLoads = true  ❌",
       "good": "// Use only https:// URLs; remove ATS exceptions from Info.plist"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:02.570029+00:00"
   },
   {
     "id": "NET-002",
@@ -23,15 +29,20 @@
     "description": "All URLSession requests must have explicit timeouts. Default 60s timeout is too long for banking UX.",
     "severity": "medium",
     "weight": 6,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": true,
     "auto_fix_hint": "Set timeoutIntervalForRequest and timeoutIntervalForResource in URLSessionConfiguration",
-    "tags": ["ux", "reliability", "networking"],
+    "tags": [
+      "ux",
+      "reliability",
+      "networking"
+    ],
     "examples": {
       "bad": "let session = URLSession.shared // ❌ Default 60s timeout",
       "good": "let config = URLSessionConfiguration.default\nconfig.timeoutIntervalForRequest = 15\nconfig.timeoutIntervalForResource = 30\nlet session = URLSession(configuration: config)"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:04.011102+00:00"
   },
   {
     "id": "NET-003",
@@ -40,15 +51,20 @@
     "description": "Network requests should implement retry with exponential backoff, not simple fixed-delay retries.",
     "severity": "medium",
     "weight": 5,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Implement exponential backoff: delay = min(base * 2^attempt, maxDelay) + jitter",
-    "tags": ["reliability", "networking", "resilience"],
+    "tags": [
+      "reliability",
+      "networking",
+      "resilience"
+    ],
     "examples": {
       "bad": "for _ in 0..<3 {\n  try? await Task.sleep(nanoseconds: 1_000_000_000)\n  try await api.fetch() // ❌ Fixed 1s retry — thundering herd",
       "good": "try await RetryPolicy.exponential(maxAttempts: 3) { try await api.fetch() }"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:04.903268+00:00"
   },
   {
     "id": "NET-004",
@@ -57,14 +73,18 @@
     "description": "Network calls must handle all error cases explicitly — no silent failures or catch-all ignoring.",
     "severity": "high",
     "weight": 8,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Handle URLError cases explicitly and propagate errors to the UI layer",
-    "tags": ["error-handling", "reliability"],
+    "tags": [
+      "error-handling",
+      "reliability"
+    ],
     "examples": {
       "bad": "let (data, _) = try? URLSession.shared.data(from: url) ?? (Data(), nil)\n// ❌ Silently ignores errors",
       "good": "do {\n  let (data, response) = try await URLSession.shared.data(from: url)\n  guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw APIError.badStatus }\n  return try JSONDecoder().decode(T.self, from: data)\n} catch let error as URLError { throw NetworkError.connection(error) }\n  catch { throw NetworkError.unknown(error) }"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:06.278142+00:00"
   }
 ]

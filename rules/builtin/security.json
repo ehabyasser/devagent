@@ -6,15 +6,20 @@
     "description": "API keys, passwords, tokens, and secrets must never appear as string literals in source code.",
     "severity": "critical",
     "weight": 10,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Use environment variables, Keychain, or a secrets manager (e.g., AWS Secrets Manager)",
-    "tags": ["owasp-a02", "pci-dss", "cwe-798"],
+    "tags": [
+      "owasp-a02",
+      "pci-dss",
+      "cwe-798"
+    ],
     "examples": {
       "bad": "let apiKey = \"sk-prod-1234abc\"\nlet password = \"P@ssw0rd!\"",
       "good": "let apiKey = ProcessInfo.processInfo.environment[\"API_KEY\"] ?? \"\"\n// Or: KeychainHelper.shared.read(key: \"api_key\")"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:15.570398+00:00"
   },
   {
     "id": "SEC-002",
@@ -23,15 +28,20 @@
     "description": "Banking apps must implement SSL/TLS certificate pinning to prevent MITM attacks.",
     "severity": "critical",
     "weight": 10,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Implement URLSessionDelegate.urlSession(_:didReceive:completionHandler:) with pinning logic",
-    "tags": ["owasp-m3", "pci-dss", "mitm"],
+    "tags": [
+      "owasp-m3",
+      "pci-dss",
+      "mitm"
+    ],
     "examples": {
       "bad": "// Using URLSession without delegate — no certificate validation",
       "good": "class PinnedSession: NSObject, URLSessionDelegate {\n  func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge,\n    completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {\n    // Validate server certificate against pinned cert\n  }\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:17.145756+00:00"
   },
   {
     "id": "SEC-003",
@@ -40,15 +50,20 @@
     "description": "UserDefaults is unencrypted. Never store tokens, PINs, account numbers, or PII in UserDefaults.",
     "severity": "critical",
     "weight": 10,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Use Keychain Services or Data Protection APIs for sensitive data",
-    "tags": ["owasp-m2", "pci-dss", "gdpr"],
+    "tags": [
+      "owasp-m2",
+      "pci-dss",
+      "gdpr"
+    ],
     "examples": {
       "bad": "UserDefaults.standard.set(authToken, forKey: \"auth_token\")\nUserDefaults.standard.set(cardNumber, forKey: \"card_number\")",
       "good": "try KeychainHelper.shared.save(authToken, key: \"auth_token\")"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:18.054348+00:00"
   },
   {
     "id": "SEC-004",
@@ -57,15 +72,19 @@
     "description": "Banking apps must detect and handle jailbroken devices to prevent unauthorized access.",
     "severity": "high",
     "weight": 9,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Integrate a jailbreak detection library (e.g., IOSSecuritySuite) in app startup",
-    "tags": ["owasp-m8", "pci-dss"],
+    "tags": [
+      "owasp-m8",
+      "pci-dss"
+    ],
     "examples": {
       "bad": "// No jailbreak check in app startup",
       "good": "if JailbreakDetector.isJailbroken() {\n  showSecurityAlert()\n  exit(0)\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:19.386459+00:00"
   },
   {
     "id": "SEC-005",
@@ -74,15 +93,19 @@
     "description": "All user inputs must be validated and sanitized before use, especially in financial calculations or API calls.",
     "severity": "high",
     "weight": 8,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Add input validation with explicit allowlist patterns",
-    "tags": ["owasp-a03", "cwe-20"],
+    "tags": [
+      "owasp-a03",
+      "cwe-20"
+    ],
     "examples": {
       "bad": "let amount = Double(textField.text!)!",
       "good": "guard let text = textField.text,\n      let amount = Decimal(string: text),\n      amount > 0, amount <= maxTransferLimit else {\n  showError(\"Invalid amount\")\n  return\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:20.145299+00:00"
   },
   {
     "id": "SEC-006",
@@ -91,14 +114,18 @@
     "description": "print() and debug-level logging must not leak sensitive data or internal paths in production builds.",
     "severity": "high",
     "weight": 7,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": true,
     "auto_fix_hint": "Wrap in #if DEBUG or use a structured logger that auto-suppresses in release builds",
-    "tags": ["owasp-m2", "cwe-532"],
+    "tags": [
+      "owasp-m2",
+      "cwe-532"
+    ],
     "examples": {
       "bad": "print(\"User token: \\(authToken)\")\nprint(\"Card: \\(cardNumber)\")",
       "good": "#if DEBUG\nlog.debug(\"Auth completed\")\n#endif"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:21.319192+00:00"
   }
 ]

@@ -6,15 +6,20 @@
     "description": "All business logic functions must have corresponding unit tests. PRs adding business logic without tests should be rejected.",
     "severity": "high",
     "weight": 8,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Add XCTestCase subclass covering happy path, edge cases, and error paths",
-    "tags": ["testing", "tdd", "quality"],
+    "tags": [
+      "testing",
+      "tdd",
+      "quality"
+    ],
     "examples": {
       "bad": "func calculateFee(amount: Decimal) -> Decimal {\n  return amount * 0.015 // ❌ No test coverage\n}",
       "good": "// In TransferFeeCalculatorTests:\nfunc testFeeCalculation() {\n  XCTAssertEqual(calculator.fee(for: 1000), Decimal(string: \"15\"))\n  XCTAssertEqual(calculator.fee(for: 0), 0)\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:32.485439+00:00"
   },
   {
     "id": "TEST-002",
@@ -23,15 +28,20 @@
     "description": "Tests must not make real network calls or access real databases. Use mocks/stubs for all external dependencies.",
     "severity": "high",
     "weight": 7,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Create protocol-conforming mock objects and inject via initializer",
-    "tags": ["testing", "mocking", "isolation"],
+    "tags": [
+      "testing",
+      "mocking",
+      "isolation"
+    ],
     "examples": {
       "bad": "func testTransfer() async throws {\n  let vm = TransferViewModel()\n  try await vm.transfer(100) // ❌ Makes real API call in tests\n}",
       "good": "func testTransfer() async throws {\n  let mockAPI = MockPaymentAPI()\n  let vm = TransferViewModel(api: mockAPI)\n  try await vm.transfer(100)\n  XCTAssertTrue(mockAPI.transferCalled)\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:33.902720+00:00"
   },
   {
     "id": "TEST-003",
@@ -40,15 +50,20 @@
     "description": "Error cases and edge conditions must be tested, not just the happy path.",
     "severity": "medium",
     "weight": 6,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Add XCTAssertThrowsError tests for each error case",
-    "tags": ["testing", "error-handling", "quality"],
+    "tags": [
+      "testing",
+      "error-handling",
+      "quality"
+    ],
     "examples": {
       "bad": "// Only tests success case:\nfunc testLogin() async throws {\n  let result = try await authService.login(\"user\", \"pass\")\n  XCTAssertNotNil(result.token)\n}",
       "good": "// Also tests failures:\nfunc testLoginWithWrongPassword() async {\n  await XCTAssertThrowsError(try await authService.login(\"user\", \"wrong\"))\n}\nfunc testLoginWithEmptyCredentials() async {\n  await XCTAssertThrowsError(try await authService.login(\"\", \"\"))\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:34.828199+00:00"
   },
   {
     "id": "TEST-004",
@@ -57,14 +72,19 @@
     "description": "Critical user journeys (login, payment, transfer) must have XCUITest coverage.",
     "severity": "medium",
     "weight": 6,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Add XCUITest for the critical flow end-to-end",
-    "tags": ["testing", "ui-testing", "xcuitest"],
+    "tags": [
+      "testing",
+      "ui-testing",
+      "xcuitest"
+    ],
     "examples": {
       "bad": "// No UI tests for the payment flow",
       "good": "func testPaymentFlow() {\n  let app = XCUIApplication()\n  app.launch()\n  app.buttons[\"Pay\"].tap()\n  app.textFields[\"Amount\"].typeText(\"100\")\n  app.buttons[\"Confirm\"].tap()\n  XCTAssertTrue(app.staticTexts[\"Payment Successful\"].exists)\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:52:36.551941+00:00"
   }
 ]

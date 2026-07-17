@@ -6,15 +6,20 @@
     "description": "All monetary amounts must use Decimal (or NSDecimalNumber), never Float or Double, to avoid floating-point precision errors.",
     "severity": "critical",
     "weight": 10,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": true,
     "auto_fix_hint": "Replace Double/Float with Decimal for all monetary values",
-    "tags": ["pci-dss", "financial-accuracy", "cwe-681"],
+    "tags": [
+      "pci-dss",
+      "financial-accuracy",
+      "cwe-681"
+    ],
     "examples": {
       "bad": "var balance: Double = 1000.50\nvar fee: Float = 2.50\nlet total = balance + fee // ❌ Floating-point imprecision",
       "good": "var balance: Decimal = 1000.50\nvar fee: Decimal = 2.50\nlet total = balance + fee // ✅ Exact decimal arithmetic"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:51:32.604558+00:00"
   },
   {
     "id": "BANK-002",
@@ -23,15 +28,20 @@
     "description": "All financial transactions must include an idempotency key to prevent duplicate charges on retry.",
     "severity": "critical",
     "weight": 10,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Add Idempotency-Key header (UUID) to payment API calls",
-    "tags": ["pci-dss", "financial-integrity", "retry-safety"],
+    "tags": [
+      "pci-dss",
+      "financial-integrity",
+      "retry-safety"
+    ],
     "examples": {
       "bad": "var request = URLRequest(url: paymentURL)\nrequest.httpMethod = \"POST\"\n// ❌ No idempotency key — double charges possible on retry",
       "good": "var request = URLRequest(url: paymentURL)\nrequest.httpMethod = \"POST\"\nrequest.setValue(UUID().uuidString, forHTTPHeaderField: \"Idempotency-Key\")"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:51:33.445379+00:00"
   },
   {
     "id": "BANK-003",
@@ -40,15 +50,21 @@
     "description": "All financial operations (transfers, payments, withdrawals) must generate audit log entries with timestamp, user ID, and operation details.",
     "severity": "critical",
     "weight": 9,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Add AuditLogger.log() call before and after each financial operation",
-    "tags": ["pci-dss", "gdpr", "compliance", "sox"],
+    "tags": [
+      "pci-dss",
+      "gdpr",
+      "compliance",
+      "sox"
+    ],
     "examples": {
       "bad": "func transfer(amount: Decimal, to: Account) async throws {\n  try await api.transfer(amount: amount, destination: to.id)\n}",
       "good": "func transfer(amount: Decimal, to: Account) async throws {\n  AuditLogger.log(.transferInitiated, amount: amount, destination: to.id)\n  do {\n    try await api.transfer(amount: amount, destination: to.id)\n    AuditLogger.log(.transferCompleted, amount: amount, destination: to.id)\n  } catch {\n    AuditLogger.log(.transferFailed, amount: amount, error: error)\n    throw error\n  }\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:51:34.653596+00:00"
   },
   {
     "id": "BANK-004",
@@ -57,15 +73,20 @@
     "description": "All transfers must validate against per-transaction and daily limits before submission.",
     "severity": "critical",
     "weight": 10,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Add limit validation before calling the transfer API",
-    "tags": ["pci-dss", "financial-controls", "fraud-prevention"],
+    "tags": [
+      "pci-dss",
+      "financial-controls",
+      "fraud-prevention"
+    ],
     "examples": {
       "bad": "func initiateTransfer(amount: Decimal) async throws {\n  try await api.transfer(amount: amount) // ❌ No limit check\n}",
       "good": "func initiateTransfer(amount: Decimal) async throws {\n  guard amount <= LimitPolicy.singleTransactionMax else {\n    throw TransferError.exceedsLimit\n  }\n  guard try await dailyLimitService.hasCapacity(for: amount) else {\n    throw TransferError.dailyLimitExceeded\n  }\n  try await api.transfer(amount: amount)\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:51:35.770866+00:00"
   },
   {
     "id": "BANK-005",
@@ -74,15 +95,20 @@
     "description": "Banking screens showing sensitive information must detect and blur/prevent screen recording.",
     "severity": "high",
     "weight": 8,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Use UITextField.isSecureTextEntry = true and detect UIScreen.isCaptured",
-    "tags": ["owasp-m2", "pci-dss", "privacy"],
+    "tags": [
+      "owasp-m2",
+      "pci-dss",
+      "privacy"
+    ],
     "examples": {
       "bad": "// Account balance view with no recording protection",
       "good": "override func viewWillAppear(_ animated: Bool) {\n  super.viewWillAppear(animated)\n  NotificationCenter.default.addObserver(self, selector: #selector(handleRecording),\n    name: UIScreen.capturedDidChangeNotification, object: nil)\n}\n@objc func handleRecording() {\n  sensitiveView.isHidden = UIScreen.main.isCaptured\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:51:36.938232+00:00"
   },
   {
     "id": "BANK-006",
@@ -91,14 +117,19 @@
     "description": "Banking apps must auto-logout after a configurable period of inactivity (default: 5 minutes).",
     "severity": "high",
     "weight": 8,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Implement session timer that resets on user interaction",
-    "tags": ["owasp-m4", "pci-dss", "session-management"],
+    "tags": [
+      "owasp-m4",
+      "pci-dss",
+      "session-management"
+    ],
     "examples": {
       "bad": "// No session timeout — user stays logged in indefinitely",
       "good": "class SessionManager {\n  private var timer: Timer?\n  func resetTimer() {\n    timer?.invalidate()\n    timer = Timer.scheduledTimer(withTimeInterval: 300, repeats: false) { _ in\n      self.logout()\n    }\n  }\n}"
     },
-    "custom": false
+    "custom": false,
+    "updated_at": "2026-07-17T23:51:38.503460+00:00"
   }
 ]

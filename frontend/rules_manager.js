@@ -298,7 +298,17 @@ async function loadActiveRuleCount() {
     const res = await fetch('/api/rules?enabled=true');
     const rules = await res.json();
     const el = document.getElementById('crRulesCount');
-    if (el) el.textContent = `${rules.length} active rules will be applied`;
+    if (!el) return;
+    if (rules.length === 0) {
+      el.innerHTML = '<span style="color:#ef4444">⚠️ No active rules — <a href="#" id="crGoRules" style="color:#ef4444;text-decoration:underline">enable rules</a> before reviewing</span>';
+      document.getElementById('crGoRules')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof switchMode === 'function') switchMode('rules');
+      });
+    } else {
+      el.textContent = `${rules.length} active rule${rules.length === 1 ? '' : 's'} will be applied`;
+      el.style.color = '';
+    }
   } catch {
     const el = document.getElementById('crRulesCount');
     if (el) el.textContent = 'Could not load rule count';
@@ -324,43 +334,73 @@ async function runCodeReview() {
     return;
   }
 
+  // ── Guard: require at least 1 active rule ─────────────────────────────
+  try {
+    const rulesRes = await fetch('/api/rules?enabled=true');
+    const activeRules = await rulesRes.json();
+    if (!activeRules || activeRules.length === 0) {
+      if (typeof showState === 'function') showState('errorState');
+      const em = document.getElementById('errorMessage');
+      if (em) em.innerHTML =
+        'No active rules found. <a href="#" id="errGoToRules" style="color:var(--brand-from);text-decoration:underline">Enable rules in the Rules Manager</a> before running a review.';
+      document.getElementById('errGoToRules')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (typeof switchMode === 'function') switchMode('rules');
+      });
+      return;
+    }
+  } catch (_) { /* proceed even if rule count fetch fails */ }
+
   const btn = document.getElementById('runCodeReview');
   if (btn) {
     btn.disabled = true;
     btn.querySelector('.btn-text').textContent = 'Reviewing…';
   }
 
-  // Show loading in the right panel via showState
+  // ── Show loading + animate stages ─────────────────────────────────────
   if (typeof showState === 'function') showState('loadingState');
+  if (typeof animateStages === 'function') animateStages();
+
   const scoreGrid = document.getElementById('scoreGrid');
-  const violList = document.getElementById('violationsList');
-  const crSum = document.getElementById('crSummary');
+  const violList  = document.getElementById('violationsList');
+  const crSum     = document.getElementById('crSummary');
   if (scoreGrid) scoreGrid.innerHTML = '';
-  if (violList) violList.innerHTML = '';
-  if (crSum) crSum.innerHTML = '';
+  if (violList)  violList.innerHTML  = '';
+  if (crSum)     crSum.innerHTML     = '';
 
   try {
     const payload = {
       pr_title: document.getElementById('crPrTitle')?.value || 'Untitled PR',
       diff,
       language: document.getElementById('crLanguage')?.value || 'swift',
-      context: document.getElementById('crContext')?.value || null,
+      context:  document.getElementById('crContext')?.value  || null,
     };
     const res = await fetch('/api/review', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
+
+    // Mark all stages done
+    if (typeof clearStageAnimation === 'function') clearStageAnimation();
+    const STAGES = ['understand', 'plan', 'tool', 'validate', 'respond'];
+    STAGES.forEach(s => {
+      const el = document.getElementById('stage-' + s);
+      if (el) { el.classList.remove('active'); el.classList.add('done'); }
+    });
+
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
       throw new Error(err.detail || 'Review failed');
     }
+
     const result = await res.json();
     window._lastCRResult = result;
-    // Show code review output panel
     if (typeof showState === 'function') showState('panel-codereview-output');
     renderCodeReviewResult(result);
+
   } catch (err) {
+    if (typeof clearStageAnimation === 'function') clearStageAnimation();
     if (typeof showState === 'function') showState('errorState');
     const em = document.getElementById('errorMessage');
     if (em) em.textContent = err.message;
@@ -370,7 +410,6 @@ async function runCodeReview() {
       btn.querySelector('.btn-text').textContent = 'Run Code Review';
     }
   }
-}
 
 function renderCodeReviewResult(result) {
   // Title + approved badge
