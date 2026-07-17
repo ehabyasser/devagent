@@ -11,7 +11,8 @@
 'use strict';
 
 /* ── Config ──────────────────────────────────────────────────────────────── */
-const API_BASE = 'http://localhost:8000';
+/* Use relative URLs — works on localhost AND on Render/any deployment */
+const API_BASE = '';
 const ENDPOINTS = {
   testGen:  API_BASE + '/api/agent/test-gen',
   prReview: API_BASE + '/api/agent/pr-review',
