@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     # Google Gemini
     gemini_api_key: str = Field(default="", alias="GEMINI_API_KEY")
-    gemini_model: str = Field(default="gemini-3.5-flash", alias="GEMINI_MODEL")
+    gemini_model: str = Field(default="gemini-2.5-flash", alias="GEMINI_MODEL")
 
     # ── Jira ─────────────────────────────────────────────────────────────────
     jira_base_url: str = Field(default="", alias="JIRA_BASE_URL")
