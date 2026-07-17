@@ -115,17 +115,29 @@ function setLoading(on, btn) {
 
 /* ── Health check ────────────────────────────────────────────────────────── */
 async function checkHealth() {
+  var ctrl  = new AbortController();
+  var timer = setTimeout(function() { ctrl.abort(); }, 5000);
   try {
-    const r = await fetch(ENDPOINTS.health, { method: 'GET', signal: AbortSignal.timeout(4000) });
+    var r = await fetch('/health', { method: 'GET', signal: ctrl.signal });
+    clearTimeout(timer);
+    var dot  = document.getElementById('statusDot');
+    var text = document.getElementById('statusText');
     if (r.ok) {
-      DOM.statusDot.className = 'status-dot online';
-      DOM.statusText.textContent = 'Backend online';
-    } else { throw new Error(); }
-  } catch (_) {
-    DOM.statusDot.className = 'status-dot error';
-    DOM.statusText.textContent = 'Backend offline';
+      if (dot)  dot.className   = 'status-dot online';
+      if (text) text.textContent = 'Backend online';
+    } else {
+      throw new Error('HTTP ' + r.status);
+    }
+  } catch (err) {
+    clearTimeout(timer);
+    var dot  = document.getElementById('statusDot');
+    var text = document.getElementById('statusText');
+    if (dot)  dot.className   = 'status-dot error';
+    if (text) text.textContent = 'Backend offline';
+    if (err.name !== 'AbortError') console.warn('[DevAgent] Health check:', err.message);
   }
 }
+
 
 /* ── Mode switch ─────────────────────────────────────────────────────────── */
 function switchMode(mode) {
@@ -568,9 +580,10 @@ document.addEventListener('keydown', function(e) {
 });
 
 /* ── Init ────────────────────────────────────────────────────────────────── */
-(async function init() {
+(function init() {
   showState('emptyState');
-  await checkHealth();
+  // Run health check in background — don't block UI
+  checkHealth();
   setInterval(checkHealth, 30000);
 })();
 
