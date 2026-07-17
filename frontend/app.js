@@ -144,19 +144,47 @@ async function checkHealth() {
 /* ── Mode switch ─────────────────────────────────────────────────────────── */
 function switchMode(mode) {
   currentMode = mode;
-  [DOM.tabTestGen, DOM.tabPRReview].forEach(function(t) {
+
+  // All tabs
+  document.querySelectorAll('.mode-tab').forEach(function(t) {
     var isActive = t.dataset.mode === mode;
     t.classList.toggle('active', isActive);
     t.setAttribute('aria-selected', String(isActive));
   });
-  DOM.panelTestGen.classList.toggle('hidden', mode !== 'testgen');
-  DOM.panelPRReview.classList.toggle('hidden', mode !== 'prreview');
-  clearStageAnimation();
-  showState('emptyState');
+
+  // Left input panels (only testgen/prreview/codereview have left panels)
+  ['testgen','prreview','codereview'].forEach(function(m) {
+    var p = document.getElementById('panel-' + m);
+    if (p) p.classList.toggle('hidden', mode !== m);
+  });
+
+  // Right output area — show for testgen/prreview, hide for codereview/rules
+  var mainOut = document.querySelector('.output-panel[aria-label="Results"]');
+  var crOut = document.getElementById('panel-codereview-output');
+  var rulesFull = document.getElementById('panel-rules-full');
+
+  if (mode === 'rules') {
+    if (mainOut) mainOut.classList.add('hidden');
+    if (crOut) crOut.classList.add('hidden');
+    if (rulesFull) rulesFull.classList.remove('hidden');
+    if (typeof loadRulesManager === 'function') loadRulesManager();
+  } else if (mode === 'codereview') {
+    if (mainOut) mainOut.classList.add('hidden');
+    if (crOut) crOut.classList.remove('hidden');
+    if (rulesFull) rulesFull.classList.add('hidden');
+    if (typeof loadActiveRuleCount === 'function') loadActiveRuleCount();
+  } else {
+    if (mainOut) mainOut.classList.remove('hidden');
+    if (crOut) crOut.classList.add('hidden');
+    if (rulesFull) rulesFull.classList.add('hidden');
+    clearStageAnimation();
+    showState('emptyState');
+  }
 }
 
-DOM.tabTestGen.addEventListener('click', function() { switchMode('testgen'); });
-DOM.tabPRReview.addEventListener('click', function() { switchMode('prreview'); });
+document.querySelectorAll('.mode-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() { switchMode(tab.dataset.mode); });
+});
 
 /* ── Error display ───────────────────────────────────────────────────────── */
 function showError(msg) {

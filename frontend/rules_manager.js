@@ -33,54 +33,6 @@ function slugify(s) { return s.toLowerCase().replace(/[_\s]/g, '-'); }
 function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' '); }
 
 /* ────────────────────────────────────────────────────────────────────
-   TAB ROUTING — wire new tabs into existing tab system
-   ──────────────────────────────────────────────────────────────────── */
-function initTabRouting() {
-  document.querySelectorAll('.mode-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const mode = btn.dataset.mode;
-      handleTabSwitch(mode);
-    });
-  });
-}
-
-function handleTabSwitch(mode) {
-  // Update tab active states
-  document.querySelectorAll('.mode-tab').forEach(t => {
-    const active = t.dataset.mode === mode;
-    t.classList.toggle('active', active);
-    t.setAttribute('aria-selected', String(active));
-  });
-
-  // Show/hide left input panels
-  ['testgen','prreview','codereview'].forEach(m => {
-    const p = document.getElementById(`panel-${m}`);
-    if (p) p.classList.toggle('hidden', m !== mode);
-  });
-
-  // Show/hide right output panels
-  const crOut   = document.getElementById('panel-codereview-output');
-  const rulesFull = document.getElementById('panel-rules-full');
-  const mainOut   = document.querySelector('.output-panel[aria-label="Results"]');
-
-  if (mode === 'rules') {
-    if (mainOut) mainOut.classList.add('hidden');
-    if (crOut) crOut.classList.add('hidden');
-    if (rulesFull) rulesFull.classList.remove('hidden');
-    loadRulesManager();
-  } else if (mode === 'codereview') {
-    if (mainOut) mainOut.classList.add('hidden');
-    if (rulesFull) rulesFull.classList.add('hidden');
-    if (crOut) crOut.classList.remove('hidden');
-    loadActiveRuleCount();
-  } else {
-    if (mainOut) mainOut.classList.remove('hidden');
-    if (crOut) crOut.classList.add('hidden');
-    if (rulesFull) rulesFull.classList.add('hidden');
-  }
-}
-
-/* ────────────────────────────────────────────────────────────────────
    RULES MANAGER
    ──────────────────────────────────────────────────────────────────── */
 async function loadRulesManager() {
@@ -359,9 +311,7 @@ function initCodeReview() {
 
   document.getElementById('goToRulesLink')?.addEventListener('click', (e) => {
     e.preventDefault();
-    handleTabSwitch('rules');
-    // Also click the rules tab button
-    document.getElementById('tab-rules')?.click();
+    if (typeof switchMode === 'function') switchMode('rules');
   });
 
   document.getElementById('exportCRExcel')?.addEventListener('click', exportReviewToExcel);
@@ -592,7 +542,6 @@ function escHtml(str) {
 
 /* ── Bootstrap ──────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-  initTabRouting();
   initModal();
   initCodeReview();
 });
