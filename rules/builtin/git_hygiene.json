@@ -1,0 +1,53 @@
+[
+  {
+    "id": "GIT-001",
+    "name": "Atomic Commits",
+    "category": "git_hygiene",
+    "description": "Each commit should represent one logical change. Large PRs mixing unrelated changes are hard to review and revert.",
+    "severity": "low",
+    "weight": 4,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Split the PR into focused, smaller PRs per feature/fix",
+    "tags": ["git", "review"],
+    "examples": {
+      "bad": "// PR: \"fixes\"\n// - Adds payment feature\n// - Updates login screen\n// - Fixes 3 unrelated bugs",
+      "good": "// PR: \"feat: add payment amount validation\"\n// Touches only PaymentViewModel and PaymentValidatorTests"
+    },
+    "custom": false
+  },
+  {
+    "id": "GIT-002",
+    "name": "No Binary Files in Diff",
+    "category": "git_hygiene",
+    "description": "Large binary files (images, compiled archives) should not be tracked in Git. Use asset catalogs or a CDN.",
+    "severity": "medium",
+    "weight": 5,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Add to .gitignore, use Git LFS for large assets, or use asset catalogs properly",
+    "tags": ["git", "repo-size"],
+    "examples": {
+      "bad": "// .xcarchive, large .png (>500KB) tracked in git",
+      "good": "// Binary assets in .gitignore or Git LFS"
+    },
+    "custom": false
+  },
+  {
+    "id": "GIT-003",
+    "name": "No Merge Commits on Feature Branches",
+    "category": "git_hygiene",
+    "description": "Feature branches should rebase on main, not merge. Merge commits create messy history.",
+    "severity": "low",
+    "weight": 3,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Use git rebase origin/main instead of git merge main",
+    "tags": ["git", "workflow"],
+    "examples": {
+      "bad": "Merge branch 'main' into feat/payment-screen",
+      "good": "git rebase origin/main"
+    },
+    "custom": false
+  }
+]

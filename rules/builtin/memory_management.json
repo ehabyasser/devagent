@@ -1,0 +1,53 @@
+[
+  {
+    "id": "MEM-001",
+    "name": "Deinit for Cleanup",
+    "category": "memory_management",
+    "description": "Classes holding observers, timers, or subscriptions must clean up in deinit to prevent memory leaks.",
+    "severity": "high",
+    "weight": 7,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Add deinit { } block to cancel subscriptions, invalidate timers, remove observers",
+    "tags": ["memory", "arc", "leak"],
+    "examples": {
+      "bad": "class HomeViewModel {\n  var timer: Timer?\n  // ❌ No deinit — timer keeps firing, ViewModel never deallocated\n}",
+      "good": "class HomeViewModel {\n  var timer: Timer?\n  deinit {\n    timer?.invalidate()\n    NotificationCenter.default.removeObserver(self)\n  }\n}"
+    },
+    "custom": false
+  },
+  {
+    "id": "MEM-002",
+    "name": "Combine Subscription Storage",
+    "category": "memory_management",
+    "description": "Combine publishers must be stored in a Set<AnyCancellable>. Unretained subscriptions are cancelled immediately.",
+    "severity": "high",
+    "weight": 8,
+    "enabled": true,
+    "auto_fix": true,
+    "auto_fix_hint": "Declare private var cancellables = Set<AnyCancellable>() and use .store(in: &cancellables)",
+    "tags": ["combine", "memory", "leak"],
+    "examples": {
+      "bad": "viewModel.$balance.sink { self.updateUI($0) } // ❌ Subscription discarded immediately",
+      "good": "private var cancellables = Set<AnyCancellable>()\n\nviewModel.$balance\n  .sink { [weak self] in self?.updateUI($0) }\n  .store(in: &cancellables)"
+    },
+    "custom": false
+  },
+  {
+    "id": "MEM-003",
+    "name": "Image Memory Management",
+    "category": "memory_management",
+    "description": "Large UIImages must be explicitly managed. Avoid holding full-resolution images in memory when thumbnails suffice.",
+    "severity": "medium",
+    "weight": 5,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Downsample images using ImageIO and use NSCache for bounded in-memory caching",
+    "tags": ["memory", "images", "oom"],
+    "examples": {
+      "bad": "let image = UIImage(named: \"hero_image\") // 10MB full res in memory",
+      "good": "let image = downsample(imageAt: url, to: targetSize) // Uses ImageIO for efficiency"
+    },
+    "custom": false
+  }
+]

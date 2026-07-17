@@ -29,6 +29,8 @@ from fastapi.staticfiles import StaticFiles
 from backend.config import settings
 from backend.routers.agent_router import router as agent_router
 from backend.routers.health_router import router as health_router
+from backend.routers.rules_router import router as rules_router
+from backend.routers.review_router import router as review_router
 
 
 @asynccontextmanager
@@ -72,6 +74,8 @@ app.add_middleware(
 
 app.include_router(health_router)
 app.include_router(agent_router)
+app.include_router(rules_router)
+app.include_router(review_router)
 
 # Serve Frontend static assets
 frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")

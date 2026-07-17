@@ -1,0 +1,70 @@
+[
+  {
+    "id": "CODE-001",
+    "name": "Functions Under 40 Lines",
+    "category": "code_quality",
+    "description": "Functions longer than 40 lines are hard to test and review. Extract sub-functions.",
+    "severity": "medium",
+    "weight": 5,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Extract logical sections into private helper functions",
+    "tags": ["clean-code", "readability"],
+    "examples": {
+      "bad": "func processPayment() {\n  // 80 lines of mixed concerns\n}",
+      "good": "func processPayment() {\n  let validated = validateInput()\n  let result = submitToGateway(validated)\n  updateUI(with: result)\n}"
+    },
+    "custom": false
+  },
+  {
+    "id": "CODE-002",
+    "name": "Magic Numbers as Named Constants",
+    "category": "code_quality",
+    "description": "Numeric literals in business logic must be named constants with clear intent.",
+    "severity": "low",
+    "weight": 4,
+    "enabled": true,
+    "auto_fix": true,
+    "auto_fix_hint": "Extract to static let constant with descriptive name",
+    "tags": ["clean-code", "readability"],
+    "examples": {
+      "bad": "if amount > 50000 { requireAdditionalAuth() }",
+      "good": "private static let highValueThreshold: Decimal = 50000\nif amount > Self.highValueThreshold { requireAdditionalAuth() }"
+    },
+    "custom": false
+  },
+  {
+    "id": "CODE-003",
+    "name": "No TODO/FIXME in Production Code",
+    "category": "code_quality",
+    "description": "TODO and FIXME comments in merged code indicate incomplete implementation. They must be tracked in Jira, not code.",
+    "severity": "medium",
+    "weight": 4,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Create a Jira ticket and remove the comment, or implement the fix before merging",
+    "tags": ["code-debt", "completeness"],
+    "examples": {
+      "bad": "// TODO: validate amount before transfer\n// FIXME: this crashes with nil account",
+      "good": "// Removed TODO — tracked in BANK-4521"
+    },
+    "custom": false
+  },
+  {
+    "id": "CODE-004",
+    "name": "Descriptive Variable Names",
+    "category": "code_quality",
+    "description": "Variables must have descriptive names. Single-letter names (except loop counters) degrade readability.",
+    "severity": "low",
+    "weight": 3,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Rename with intent-revealing names",
+    "tags": ["clean-code", "readability"],
+    "examples": {
+      "bad": "let x = api.fetch()\nlet d = formatter.string(from: date)",
+      "good": "let accountBalance = api.fetchBalance()\nlet formattedDate = formatter.string(from: transactionDate)"
+    },
+    "custom": false
+  }
+]

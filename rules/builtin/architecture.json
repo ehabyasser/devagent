@@ -1,0 +1,87 @@
+[
+  {
+    "id": "ARCH-001",
+    "name": "Single Responsibility Principle",
+    "category": "architecture",
+    "description": "A class or struct should have only one reason to change. Classes with >3 distinct responsibilities should be split.",
+    "severity": "high",
+    "weight": 8,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Extract responsibilities into dedicated types/services",
+    "tags": ["SOLID", "clean-architecture"],
+    "examples": {
+      "bad": "class UserManager {\n  func login() {}\n  func fetchData() {}\n  func updateUI() {}\n  func logAnalytics() {}\n}",
+      "good": "class AuthService { func login() {} }\nclass DataService { func fetchData() {} }\nclass AnalyticsService { func log() {} }"
+    },
+    "custom": false
+  },
+  {
+    "id": "ARCH-002",
+    "name": "Dependency Injection Over Singletons",
+    "category": "architecture",
+    "description": "Avoid accessing global singletons directly inside business logic. Prefer constructor injection for testability.",
+    "severity": "medium",
+    "weight": 7,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Pass dependencies via initializer or property injection",
+    "tags": ["SOLID", "testability"],
+    "examples": {
+      "bad": "class ViewModel {\n  func load() { NetworkManager.shared.fetch() }\n}",
+      "good": "class ViewModel {\n  let network: NetworkProtocol\n  init(network: NetworkProtocol) { self.network = network }\n}"
+    },
+    "custom": false
+  },
+  {
+    "id": "ARCH-003",
+    "name": "Protocol-Oriented Design",
+    "category": "architecture",
+    "description": "Use protocols to abstract concrete types. Avoid concrete type coupling between layers.",
+    "severity": "medium",
+    "weight": 7,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Extract a protocol from the concrete type and depend on the protocol",
+    "tags": ["swift", "SOLID", "testability"],
+    "examples": {
+      "bad": "class PaymentViewModel {\n  let service: StripePaymentService\n}",
+      "good": "protocol PaymentServiceProtocol { func charge(amount: Decimal) async throws }\nclass PaymentViewModel {\n  let service: PaymentServiceProtocol\n}"
+    },
+    "custom": false
+  },
+  {
+    "id": "ARCH-004",
+    "name": "No Business Logic in SwiftUI Views",
+    "category": "architecture",
+    "description": "SwiftUI views must be dumb. Business logic, network calls, and data transformation belong in ViewModels or services.",
+    "severity": "high",
+    "weight": 8,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Move logic to @ObservableObject ViewModel",
+    "tags": ["swiftui", "mvvm"],
+    "examples": {
+      "bad": "struct TransactionView: View {\n  var body: some View {\n    Button(\"Pay\") { URLSession.shared.dataTask(...) }\n  }\n}",
+      "good": "struct TransactionView: View {\n  @StateObject var vm: TransactionViewModel\n  var body: some View {\n    Button(\"Pay\") { vm.pay() }\n  }\n}"
+    },
+    "custom": false
+  },
+  {
+    "id": "ARCH-005",
+    "name": "Modular Feature Boundaries",
+    "category": "architecture",
+    "description": "Features should not import each other directly. Cross-feature communication must go through shared interfaces or a coordinator.",
+    "severity": "medium",
+    "weight": 6,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Use a Coordinator or Router pattern for cross-feature navigation",
+    "tags": ["modular", "clean-architecture"],
+    "examples": {
+      "bad": "import TransferFeature // inside LoginFeature",
+      "good": "// Communicate via AppCoordinator.shared.showTransfer()"
+    },
+    "custom": false
+  }
+]

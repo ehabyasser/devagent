@@ -1,0 +1,87 @@
+[
+  {
+    "id": "SWIFT-001",
+    "name": "Prefer Structured Concurrency Over Callbacks",
+    "category": "swift_best_practices",
+    "description": "Use async/await instead of completion handlers for asynchronous code.",
+    "severity": "medium",
+    "weight": 6,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Wrap callback-based APIs with withCheckedContinuation",
+    "tags": ["swift5.5", "async-await"],
+    "examples": {
+      "bad": "func fetchUser(completion: @escaping (User?, Error?) -> Void) {\n  URLSession.shared.dataTask(with: url) { data, _, error in\n    completion(decode(data), error)\n  }.resume()\n}",
+      "good": "func fetchUser() async throws -> User {\n  let (data, _) = try await URLSession.shared.data(from: url)\n  return try JSONDecoder().decode(User.self, from: data)\n}"
+    },
+    "custom": false
+  },
+  {
+    "id": "SWIFT-002",
+    "name": "Avoid Force Unwrapping",
+    "category": "swift_best_practices",
+    "description": "Force unwrapping (!) crashes at runtime if the optional is nil. Use guard/if-let or nil coalescing.",
+    "severity": "high",
+    "weight": 8,
+    "enabled": true,
+    "auto_fix": true,
+    "auto_fix_hint": "Replace ! with guard let, if let, or ?? with a safe default",
+    "tags": ["safety", "crash-prevention"],
+    "examples": {
+      "bad": "let amount = Double(textField.text!)\nlet cell = tableView.dequeueReusableCell(withIdentifier: \"Cell\")!",
+      "good": "guard let text = textField.text, let amount = Double(text) else { return }\nguard let cell = tableView.dequeueReusableCell(withIdentifier: \"Cell\") else { return }"
+    },
+    "custom": false
+  },
+  {
+    "id": "SWIFT-003",
+    "name": "Use Value Types for Data Models",
+    "category": "swift_best_practices",
+    "description": "Prefer structs over classes for data models unless you need reference semantics or inheritance.",
+    "severity": "low",
+    "weight": 4,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Change class to struct for pure data models",
+    "tags": ["value-types", "swift"],
+    "examples": {
+      "bad": "class Transaction {\n  var amount: Decimal\n  var date: Date\n}",
+      "good": "struct Transaction: Codable, Equatable {\n  let amount: Decimal\n  let date: Date\n}"
+    },
+    "custom": false
+  },
+  {
+    "id": "SWIFT-004",
+    "name": "Explicit Access Control",
+    "category": "swift_best_practices",
+    "description": "All types, properties, and methods should have explicit access control modifiers (private, internal, public).",
+    "severity": "medium",
+    "weight": 5,
+    "enabled": true,
+    "auto_fix": true,
+    "auto_fix_hint": "Add private/internal/public modifiers explicitly",
+    "tags": ["encapsulation", "swift"],
+    "examples": {
+      "bad": "class AuthManager {\n  var token: String = \"\"\n  func refresh() {}\n}",
+      "good": "final class AuthManager {\n  private var token: String = \"\"\n  internal func refresh() {}\n}"
+    },
+    "custom": false
+  },
+  {
+    "id": "SWIFT-005",
+    "name": "Avoid Retain Cycles with Weak References",
+    "category": "swift_best_practices",
+    "description": "Closures capturing self in reference types must use [weak self] or [unowned self] to prevent memory leaks.",
+    "severity": "high",
+    "weight": 8,
+    "enabled": true,
+    "auto_fix": true,
+    "auto_fix_hint": "Add [weak self] to the closure capture list, then guard let self = self else { return }",
+    "tags": ["memory", "arc", "leak"],
+    "examples": {
+      "bad": "viewModel.onSuccess = {\n  self.updateUI()\n}",
+      "good": "viewModel.onSuccess = { [weak self] in\n  guard let self = self else { return }\n  self.updateUI()\n}"
+    },
+    "custom": false
+  }
+]

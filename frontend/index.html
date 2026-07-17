@@ -62,6 +62,34 @@
           </svg>
           PR Review
         </button>
+        <button
+          id="tab-codereview"
+          class="mode-tab"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-codereview"
+          data-mode="codereview"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M4 6l-2 2 2 2M12 6l2 2-2 2M9 4l-2 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Code Review
+        </button>
+        <button
+          id="tab-rules"
+          class="mode-tab"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-rules"
+          data-mode="rules"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M2 4h12M2 8h9M2 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="13" cy="11" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M13 9.5V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Rules Manager
+        </button>
       </nav>
 
       <div class="header-status">
@@ -206,6 +234,57 @@ index abc123..def456 100644
         </div>
       </div>
 
+      <!-- Code Review Panel -->
+      <div id="panel-codereview" class="agent-panel hidden" role="tabpanel" aria-labelledby="tab-codereview">
+        <div class="panel-header">
+          <h1 class="panel-title">AI Code Review</h1>
+          <p class="panel-subtitle">Bank-grade structured review against your active ruleset — scores, violations, and fixes</p>
+        </div>
+
+        <div class="form-group">
+          <label for="crPrTitle" class="form-label">PR Title</label>
+          <input type="text" id="crPrTitle" class="form-input" placeholder="e.g. feat: Add biometric authentication" autocomplete="off"/>
+        </div>
+
+        <div class="form-group">
+          <label for="crLanguage" class="form-label">Language</label>
+          <select id="crLanguage" class="form-input" style="height:42px">
+            <option value="swift" selected>Swift</option>
+            <option value="kotlin">Kotlin</option>
+            <option value="python">Python</option>
+            <option value="typescript">TypeScript</option>
+            <option value="javascript">JavaScript</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="crDiffInput" class="form-label">
+            Git Diff
+            <span class="form-hint">Paste output of <code>git diff main...your-branch</code></span>
+          </label>
+          <textarea id="crDiffInput" class="form-textarea mono" rows="14" placeholder="diff --git a/Sources/App/PaymentViewModel.swift ..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="crContext" class="form-label">
+            Additional Context <span class="form-hint">Optional — describe the codebase or PR goals</span>
+          </label>
+          <textarea id="crContext" class="form-textarea" rows="2" placeholder="e.g. This is a banking app targeting iOS 17+. This PR adds recurring payment support."></textarea>
+        </div>
+
+        <div class="cr-active-rules-info" id="crActiveRulesInfo">
+          <span class="cr-rules-count" id="crRulesCount">Loading rules…</span>
+          <a href="#" id="goToRulesLink" class="cr-rules-link">Configure rules →</a>
+        </div>
+
+        <button id="runCodeReview" class="btn-primary" aria-label="Run AI code review">
+          <span class="btn-text">Run Code Review</span>
+          <svg class="btn-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M4 6l-2 2 2 2M14 6l2 2-2 2M11 4l-4 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
     </section>
 
     <!-- ── Right: Output Panel ─────────────────────────────────────────────────── -->
@@ -335,10 +414,116 @@ index abc123..def456 100644
       </div>
 
     </section>
+
+    <!-- ══ Code Review Output Panel ══════════════════════════════════════════ -->
+    <section id="panel-codereview-output" class="output-panel codereview-full hidden" role="tabpanel" aria-labelledby="tab-codereview">
+      <div class="cr-header">
+        <div class="cr-header-left">
+          <h2 class="cr-title" id="crTitle">Code Review</h2>
+          <span id="crApproved" class="cr-badge"></span>
+        </div>
+        <div class="cr-header-actions">
+          <button class="action-btn" id="exportCRExcel" title="Export to Excel">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 6l2 2-2 2M9 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Export
+          </button>
+        </div>
+      </div>
+      <!-- Score gauges -->
+      <div class="score-grid" id="scoreGrid"></div>
+      <!-- Violations -->
+      <div class="violations-header">
+        <h3 class="violations-title">Violations <span id="violationCount" class="badge-count">0</span></h3>
+        <div class="violation-filters" id="violationFilters"></div>
+      </div>
+      <div id="violationsList" class="violations-list"></div>
+      <div id="crSummary" class="cr-summary-box"></div>
+    </section>
+
+    <!-- ══ Rules Manager Full-Page Panel ══════════════════════════════════════ -->
+    <section id="panel-rules-full" class="rules-full hidden" role="tabpanel" aria-labelledby="tab-rules">
+      <div class="rules-toolbar">
+        <div class="rules-toolbar-left">
+          <h2 class="rules-page-title">Rules Manager</h2>
+          <span id="rulesActiveCount" class="rules-count-badge">0 active</span>
+        </div>
+        <div class="rules-toolbar-right">
+          <input type="text" id="rulesSearch" class="rules-search" placeholder="Search rules…" aria-label="Search rules"/>
+          <button class="btn-primary rules-new-btn" id="openNewRuleModal">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            New Rule
+          </button>
+        </div>
+      </div>
+      <div class="rules-layout">
+        <nav class="rules-sidebar" id="rulesSidebar" aria-label="Rule categories"></nav>
+        <div class="rules-grid" id="rulesGrid"></div>
+      </div>
+    </section>
+
+    <!-- New Rule Modal -->
+    <div id="newRuleModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 class="modal-title" id="modalTitle">Create Custom Rule</h3>
+          <button class="modal-close" id="closeNewRuleModal" aria-label="Close">✕</button>
+        </div>
+        <form id="newRuleForm" class="modal-form">
+          <div class="form-row">
+            <label class="form-label" for="ruleNameInput">Rule Name *</label>
+            <input type="text" id="ruleNameInput" class="form-input" required placeholder="e.g. Require 2FA for high-value transfers"/>
+          </div>
+          <div class="form-row form-row-2col">
+            <div>
+              <label class="form-label" for="ruleCategoryInput">Category</label>
+              <select id="ruleCategoryInput" class="form-input form-select"></select>
+            </div>
+            <div>
+              <label class="form-label" for="ruleSeverityInput">Severity</label>
+              <select id="ruleSeverityInput" class="form-input form-select">
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+                <option value="medium" selected>Medium</option>
+                <option value="low">Low</option>
+                <option value="info">Info</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="ruleDescInput">Description *</label>
+            <textarea id="ruleDescInput" class="form-input form-textarea" required placeholder="Describe what this rule checks and why it matters…"></textarea>
+          </div>
+          <div class="form-row form-row-2col">
+            <div>
+              <label class="form-label" for="ruleBadExInput">❌ Bad Example</label>
+              <textarea id="ruleBadExInput" class="form-input form-textarea form-mono" placeholder="Code that violates this rule…"></textarea>
+            </div>
+            <div>
+              <label class="form-label" for="ruleGoodExInput">✅ Good Example</label>
+              <textarea id="ruleGoodExInput" class="form-input form-textarea form-mono" placeholder="Correct code…"></textarea>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label" for="ruleWeightInput">Weight: <span id="ruleWeightVal">5</span>/10</label>
+            <input type="range" id="ruleWeightInput" class="form-range" min="1" max="10" value="5"/>
+          </div>
+          <div class="form-row form-row-checks">
+            <label class="form-check"><input type="checkbox" id="ruleAutoFix"/> Auto-fix available</label>
+            <label class="form-check"><input type="checkbox" id="ruleEnabled" checked/> Enabled</label>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="cancelNewRule">Cancel</button>
+            <button type="submit" class="btn-primary">Create Rule</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
   </main>
 
   <script src="FileSaver.min.js"></script>
   <script src="xlsx.min.js"></script>
   <script src="app.js"></script>
+  <script src="rules_manager.js"></script>
 </body>
 </html>

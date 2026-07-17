@@ -1,0 +1,70 @@
+[
+  {
+    "id": "UIUX-001",
+    "name": "Accessibility Labels on Interactive Elements",
+    "category": "ui_ux",
+    "description": "All buttons, images, and interactive elements must have accessibilityLabel for VoiceOver support.",
+    "severity": "medium",
+    "weight": 6,
+    "enabled": true,
+    "auto_fix": true,
+    "auto_fix_hint": "Add .accessibilityLabel(\"description\") to SwiftUI views or set accessibilityLabel in UIKit",
+    "tags": ["accessibility", "a11y", "wcag"],
+    "examples": {
+      "bad": "Button(action: pay) { Image(systemName: \"arrow.right\") }",
+      "good": "Button(action: pay) { Image(systemName: \"arrow.right\") }\n  .accessibilityLabel(\"Confirm Payment\")"
+    },
+    "custom": false
+  },
+  {
+    "id": "UIUX-002",
+    "name": "Loading State for Async Operations",
+    "category": "ui_ux",
+    "description": "Every async operation must show a loading indicator. Users must not be left with a frozen UI.",
+    "severity": "medium",
+    "weight": 6,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Use @State var isLoading = false, toggle before/after async call, show ProgressView",
+    "tags": ["ux", "loading-state"],
+    "examples": {
+      "bad": "Button(\"Pay\") {\n  Task { try await viewModel.pay() } // ❌ No loading state\n}",
+      "good": "Button(\"Pay\") {\n  Task {\n    viewModel.isLoading = true\n    defer { viewModel.isLoading = false }\n    try await viewModel.pay()\n  }\n}\nif viewModel.isLoading { ProgressView() }"
+    },
+    "custom": false
+  },
+  {
+    "id": "UIUX-003",
+    "name": "Error Feedback to User",
+    "category": "ui_ux",
+    "description": "All errors must be presented to the user with an actionable message, not silently swallowed.",
+    "severity": "high",
+    "weight": 7,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "Show an alert or error view with a retry action",
+    "tags": ["ux", "error-handling"],
+    "examples": {
+      "bad": "Task {\n  try? await viewModel.transfer() // ❌ Errors are silently ignored\n}",
+      "good": "Task {\n  do {\n    try await viewModel.transfer()\n  } catch {\n    errorMessage = error.localizedDescription\n    showError = true\n  }\n}"
+    },
+    "custom": false
+  },
+  {
+    "id": "UIUX-004",
+    "name": "Haptic Feedback for Financial Actions",
+    "category": "ui_ux",
+    "description": "Important financial actions (payment confirmed, transfer sent) should use haptic feedback for physical confirmation.",
+    "severity": "low",
+    "weight": 3,
+    "enabled": true,
+    "auto_fix": true,
+    "auto_fix_hint": "Use UINotificationFeedbackGenerator().notificationOccurred(.success) on success",
+    "tags": ["ux", "haptics"],
+    "examples": {
+      "bad": "// Payment confirmed — no haptic feedback",
+      "good": "let feedback = UINotificationFeedbackGenerator()\nfeedback.notificationOccurred(.success)"
+    },
+    "custom": false
+  }
+]
