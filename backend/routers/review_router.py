@@ -18,7 +18,7 @@ async def run_code_review(request: ReviewRequest) -> dict:
     try:
         llm = get_llm()
         agent = CodeReviewAgent(llm)
-        return await agent.run(request)
+        return await agent.review(request)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
