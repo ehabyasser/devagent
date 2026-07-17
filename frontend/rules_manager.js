@@ -330,14 +330,14 @@ async function runCodeReview() {
     btn.querySelector('.btn-text').textContent = 'Reviewing…';
   }
 
-  // Show output panel
-  const outputPanel = document.getElementById('panel-codereview-output');
-  if (outputPanel) {
-    outputPanel.classList.remove('hidden');
-    document.getElementById('scoreGrid').innerHTML = '<div class="cr-loading">🤖 AI is reviewing your code against active rules…</div>';
-    document.getElementById('violationsList').innerHTML = '';
-    document.getElementById('crSummary').innerHTML = '';
-  }
+  // Show loading in the right panel via showState
+  if (typeof showState === 'function') showState('loadingState');
+  const scoreGrid = document.getElementById('scoreGrid');
+  const violList = document.getElementById('violationsList');
+  const crSum = document.getElementById('crSummary');
+  if (scoreGrid) scoreGrid.innerHTML = '';
+  if (violList) violList.innerHTML = '';
+  if (crSum) crSum.innerHTML = '';
 
   try {
     const payload = {
@@ -357,10 +357,13 @@ async function runCodeReview() {
     }
     const result = await res.json();
     window._lastCRResult = result;
+    // Show code review output panel
+    if (typeof showState === 'function') showState('panel-codereview-output');
     renderCodeReviewResult(result);
   } catch (err) {
-    document.getElementById('scoreGrid').innerHTML =
-      `<div class="cr-error">⚠️ ${escHtml(err.message)}</div>`;
+    if (typeof showState === 'function') showState('errorState');
+    const em = document.getElementById('errorMessage');
+    if (em) em.textContent = err.message;
   } finally {
     if (btn) {
       btn.disabled = false;

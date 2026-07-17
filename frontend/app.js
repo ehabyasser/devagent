@@ -30,35 +30,21 @@ const getEl = (id) => document.getElementById(id);
 
 const DOM = {
   tabTestGen:      getEl('tab-testgen'),
-  tabPRReview:     getEl('tab-prreview'),
   panelTestGen:    getEl('panel-testgen'),
-  panelPRReview:   getEl('panel-prreview'),
   ticketId:        getEl('ticketId'),
   featureDesc:     getEl('featureDescription'),
-  prTitle:         getEl('prTitle'),
-  diffInput:       getEl('diffInput'),
   runTestGen:      getEl('runTestGen'),
-  runPRReview:     getEl('runPRReview'),
   copyTestSuite:   getEl('copyTestSuite'),
-  copyPRReview:    getEl('copyPRReview'),
   emptyState:      getEl('emptyState'),
   loadingState:    getEl('loadingState'),
   loadingMessage:  getEl('loadingMessage'),
   testSuiteResult: getEl('testSuiteResult'),
-  prReviewResult:  getEl('prReviewResult'),
   errorState:      getEl('errorState'),
   errorMessage:    getEl('errorMessage'),
   testSuiteMeta:   getEl('testSuiteMeta'),
   testSuiteStats:  getEl('testSuiteStats'),
   testCasesList:   getEl('testCasesList'),
   coverageNotes:   getEl('coverageNotes'),
-  prReviewMeta:    getEl('prReviewMeta'),
-  mergeRec:        getEl('mergeRecommendation'),
-  prSummary:       getEl('prSummary'),
-  secretBanner:    getEl('secretScanBanner'),
-  prStats:         getEl('prStats'),
-  issueFilters:    getEl('issueFilters'),
-  issuesList:      getEl('issuesList'),
   statusDot:       getEl('statusDot'),
   statusText:      getEl('statusText'),
 };
@@ -102,9 +88,9 @@ function clearStageAnimation() {
   });
 }
 
-/* ── UI state machine ────────────────────────────────────────────────────── */
+/* ── UI state machine ───────────────────────────────────────────────────────────── */
 function showState(state) {
-  var states = ['emptyState', 'loadingState', 'testSuiteResult', 'prReviewResult', 'errorState'];
+  var states = ['emptyState', 'loadingState', 'testSuiteResult', 'errorState', 'panel-codereview-output'];
   states.forEach(function(s) {
     var el = getEl(s);
     if (el) el.classList.add('hidden');
@@ -152,33 +138,26 @@ function switchMode(mode) {
     t.setAttribute('aria-selected', String(isActive));
   });
 
-  // Left input panels (only testgen/prreview/codereview have left panels)
-  ['testgen','prreview','codereview'].forEach(function(m) {
+  // Left input panels
+  ['testgen','codereview'].forEach(function(m) {
     var p = document.getElementById('panel-' + m);
     if (p) p.classList.toggle('hidden', mode !== m);
   });
 
-  // Right output area — show for testgen/prreview, hide for codereview/rules
+  // Right output area
   var mainOut = document.querySelector('.output-panel[aria-label="Results"]');
-  var crOut = document.getElementById('panel-codereview-output');
   var rulesFull = document.getElementById('panel-rules-full');
 
   if (mode === 'rules') {
     if (mainOut) mainOut.classList.add('hidden');
-    if (crOut) crOut.classList.add('hidden');
     if (rulesFull) rulesFull.classList.remove('hidden');
     if (typeof loadRulesManager === 'function') loadRulesManager();
-  } else if (mode === 'codereview') {
-    if (mainOut) mainOut.classList.add('hidden');
-    if (crOut) crOut.classList.remove('hidden');
-    if (rulesFull) rulesFull.classList.add('hidden');
-    if (typeof loadActiveRuleCount === 'function') loadActiveRuleCount();
   } else {
     if (mainOut) mainOut.classList.remove('hidden');
-    if (crOut) crOut.classList.add('hidden');
     if (rulesFull) rulesFull.classList.add('hidden');
     clearStageAnimation();
     showState('emptyState');
+    if (mode === 'codereview' && typeof loadActiveRuleCount === 'function') loadActiveRuleCount();
   }
 }
 

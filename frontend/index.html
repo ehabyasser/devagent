@@ -49,20 +49,6 @@
           Test Generator
         </button>
         <button
-          id="tab-prreview"
-          class="mode-tab"
-          role="tab"
-          aria-selected="false"
-          aria-controls="panel-prreview"
-          data-mode="prreview"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M10 2L14 6M10 2H4a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2V6L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-            <path d="M5 9l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          PR Review
-        </button>
-        <button
           id="tab-codereview"
           class="mode-tab"
           role="tab"
@@ -167,74 +153,7 @@ Acceptance Criteria:
         </div>
       </div>
 
-      <!-- PR Review Panel -->
-      <div id="panel-prreview" class="agent-panel hidden" role="tabpanel" aria-labelledby="tab-prreview">
-        <div class="panel-header">
-          <h1 class="panel-title">Pull Request Review</h1>
-          <p class="panel-subtitle">Architectural, security, and best-practice review of your git diff</p>
-        </div>
-
-        <div class="form-group">
-          <label for="prTitle" class="form-label">PR Title</label>
-          <input
-            type="text"
-            id="prTitle"
-            class="form-input"
-            placeholder="e.g. feat: Add Face ID authentication"
-            autocomplete="off"
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="diffInput" class="form-label">
-            Git Diff
-            <span class="form-hint">Paste output of <code>git diff main...your-branch</code></span>
-          </label>
-          <textarea
-            id="diffInput"
-            class="form-textarea mono"
-            placeholder="diff --git a/Sources/App/AuthViewModel.swift b/Sources/App/AuthViewModel.swift
-index abc123..def456 100644
---- a/Sources/App/AuthViewModel.swift
-+++ b/Sources/App/AuthViewModel.swift
-@@ -1,10 +1,18 @@
- import Foundation
-+import LocalAuthentication
-
- @MainActor
- class AuthViewModel: ObservableObject {
-+    private let context = LAContext()
-+
-     func authenticate() async throws {
--        // TODO
-+        var error: NSError?
-+        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
-+            throw AuthError.biometricsUnavailable
-+        }
-+        try await context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Sign in to DevApp")
-     }
- }"
-            rows="14"
-          ></textarea>
-        </div>
-
-        <button id="runPRReview" class="btn-primary" aria-label="Review pull request">
-          <span class="btn-text">Review Pull Request</span>
-          <svg class="btn-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
-            <path d="M6 9l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-
-        <div class="example-chips">
-          <span class="chips-label">Try an example:</span>
-          <button class="chip" data-example="prreview-auth">Auth PR</button>
-          <button class="chip" data-example="prreview-network">Networking</button>
-          <button class="chip" data-example="prreview-secret">With Secrets 🔴</button>
-        </div>
-      </div>
-
-      <!-- Code Review Panel -->
+      <!-- Code Review Input Panel -->
       <div id="panel-codereview" class="agent-panel hidden" role="tabpanel" aria-labelledby="tab-codereview">
         <div class="panel-header">
           <h1 class="panel-title">AI Code Review</h1>
@@ -413,31 +332,31 @@ index abc123..def456 100644
         <button class="btn-secondary" onclick="clearError()">Try Again</button>
       </div>
 
-    </section>
+      <!-- Code Review Output -->
+      <div id="panel-codereview-output" class="hidden">
+        <div class="cr-header">
+          <div class="cr-header-left">
+            <h2 class="cr-title" id="crTitle">Code Review</h2>
+            <span id="crApproved" class="cr-badge"></span>
+          </div>
+          <div class="cr-header-actions">
+            <button class="action-btn" id="exportCRExcel" title="Export to Excel">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 6l2 2-2 2M9 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Export
+            </button>
+          </div>
+        </div>
+        <!-- Score gauges -->
+        <div class="score-grid" id="scoreGrid"></div>
+        <!-- Violations -->
+        <div class="violations-header">
+          <h3 class="violations-title">Violations <span id="violationCount" class="badge-count">0</span></h3>
+          <div class="violation-filters" id="violationFilters"></div>
+        </div>
+        <div id="violationsList" class="violations-list"></div>
+        <div id="crSummary" class="cr-summary-box"></div>
+      </div>
 
-    <!-- ══ Code Review Output Panel ══════════════════════════════════════════ -->
-    <section id="panel-codereview-output" class="output-panel codereview-full hidden" role="tabpanel" aria-labelledby="tab-codereview">
-      <div class="cr-header">
-        <div class="cr-header-left">
-          <h2 class="cr-title" id="crTitle">Code Review</h2>
-          <span id="crApproved" class="cr-badge"></span>
-        </div>
-        <div class="cr-header-actions">
-          <button class="action-btn" id="exportCRExcel" title="Export to Excel">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 6l2 2-2 2M9 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            Export
-          </button>
-        </div>
-      </div>
-      <!-- Score gauges -->
-      <div class="score-grid" id="scoreGrid"></div>
-      <!-- Violations -->
-      <div class="violations-header">
-        <h3 class="violations-title">Violations <span id="violationCount" class="badge-count">0</span></h3>
-        <div class="violation-filters" id="violationFilters"></div>
-      </div>
-      <div id="violationsList" class="violations-list"></div>
-      <div id="crSummary" class="cr-summary-box"></div>
     </section>
 
     <!-- ══ Rules Manager Full-Page Panel ══════════════════════════════════════ -->
