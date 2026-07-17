@@ -11,6 +11,14 @@ Security measures:
 from __future__ import annotations
 
 import os
+import sys
+
+# Ensure the project root is on sys.path so `backend.*` imports work
+# whether the file is run as `python backend/main.py` or via uvicorn
+_project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
