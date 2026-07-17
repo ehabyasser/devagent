@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevAgent — AI Platform for Software Teams</title>
+  <meta name="description" content="AI-powered test case generation and pull request review for software engineering teams." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────────────────────────── -->
+  <header class="header" role="banner">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <rect width="28" height="28" rx="8" fill="url(#logoGrad)"/>
+            <path d="M7 14L11 18L21 8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="logoGrad" x1="0" y1="0" x2="28" y2="28">
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="100%" stop-color="#8b5cf6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-title">DevAgent</span>
+          <span class="logo-badge">V1</span>
+        </div>
+      </div>
+
+      <nav class="mode-tabs" role="tablist" aria-label="Agent mode">
+        <button
+          id="tab-testgen"
+          class="mode-tab active"
+          role="tab"
+          aria-selected="true"
+          aria-controls="panel-testgen"
+          data-mode="testgen"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Test Generator
+        </button>
+        <button
+          id="tab-prreview"
+          class="mode-tab"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-prreview"
+          data-mode="prreview"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M10 2L14 6M10 2H4a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2V6L10 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M5 9l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          PR Review
+        </button>
+      </nav>
+
+      <div class="header-status">
+        <span class="status-dot" id="statusDot" aria-hidden="true"></span>
+        <span id="statusText" class="status-text">Connecting…</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main Layout ──────────────────────────────────────────────────────────── -->
+  <main class="main-layout" role="main">
+
+    <!-- ── Left: Input Panel ──────────────────────────────────────────────────── -->
+    <section class="input-panel" aria-label="Input">
+
+      <!-- Test Gen Panel -->
+      <div id="panel-testgen" class="agent-panel" role="tabpanel" aria-labelledby="tab-testgen">
+        <div class="panel-header">
+          <h1 class="panel-title">Test Case Generator</h1>
+          <p class="panel-subtitle">Generate comprehensive test suites from Jira tickets or feature descriptions</p>
+        </div>
+
+        <div class="form-group">
+          <label for="ticketId" class="form-label">
+            Jira Ticket ID
+            <span class="form-hint">Optional if providing a description</span>
+          </label>
+          <input
+            type="text"
+            id="ticketId"
+            class="form-input"
+            placeholder="e.g. PROJ-123"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+
+        <div class="form-divider">
+          <span>or describe the feature</span>
+        </div>
+
+        <div class="form-group">
+          <label for="featureDescription" class="form-label">
+            Feature Description
+          </label>
+          <textarea
+            id="featureDescription"
+            class="form-textarea"
+            placeholder="Describe the feature or user story in detail. Include acceptance criteria if you have them.
+
+Example: As a user, I want to log in using Face ID so that I can access the app securely without entering my password. 
+
+Acceptance Criteria:
+- Face ID prompt appears on first app launch after password login
+- Successful Face ID auth grants access within 2 seconds
+- After 3 failed Face ID attempts, fall back to password
+- Settings toggle to disable Face ID"
+            rows="10"
+          ></textarea>
+        </div>
+
+        <button id="runTestGen" class="btn-primary" aria-label="Generate test cases">
+          <span class="btn-text">Generate Test Suite</span>
+          <svg class="btn-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M9 2v14M2 9h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+            <path d="M5 9l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <div class="example-chips">
+          <span class="chips-label">Try an example:</span>
+          <button class="chip" data-example="testgen-login">Face ID Login</button>
+          <button class="chip" data-example="testgen-checkout">Payment Checkout</button>
+          <button class="chip" data-example="testgen-search">Search & Filter</button>
+        </div>
+      </div>
+
+      <!-- PR Review Panel -->
+      <div id="panel-prreview" class="agent-panel hidden" role="tabpanel" aria-labelledby="tab-prreview">
+        <div class="panel-header">
+          <h1 class="panel-title">Pull Request Review</h1>
+          <p class="panel-subtitle">Architectural, security, and best-practice review of your git diff</p>
+        </div>
+
+        <div class="form-group">
+          <label for="prTitle" class="form-label">PR Title</label>
+          <input
+            type="text"
+            id="prTitle"
+            class="form-input"
+            placeholder="e.g. feat: Add Face ID authentication"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="diffInput" class="form-label">
+            Git Diff
+            <span class="form-hint">Paste output of <code>git diff main...your-branch</code></span>
+          </label>
+          <textarea
+            id="diffInput"
+            class="form-textarea mono"
+            placeholder="diff --git a/Sources/App/AuthViewModel.swift b/Sources/App/AuthViewModel.swift
+index abc123..def456 100644
+--- a/Sources/App/AuthViewModel.swift
++++ b/Sources/App/AuthViewModel.swift
+@@ -1,10 +1,18 @@
+ import Foundation
++import LocalAuthentication
+
+ @MainActor
+ class AuthViewModel: ObservableObject {
++    private let context = LAContext()
++
+     func authenticate() async throws {
+-        // TODO
++        var error: NSError?
++        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
++            throw AuthError.biometricsUnavailable
++        }
++        try await context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Sign in to DevApp")
+     }
+ }"
+            rows="14"
+          ></textarea>
+        </div>
+
+        <button id="runPRReview" class="btn-primary" aria-label="Review pull request">
+          <span class="btn-text">Review Pull Request</span>
+          <svg class="btn-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
+            <path d="M6 9l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <div class="example-chips">
+          <span class="chips-label">Try an example:</span>
+          <button class="chip" data-example="prreview-auth">Auth PR</button>
+          <button class="chip" data-example="prreview-network">Networking</button>
+          <button class="chip" data-example="prreview-secret">With Secrets 🔴</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── Right: Output Panel ─────────────────────────────────────────────────── -->
+    <section class="output-panel" aria-label="Results" aria-live="polite">
+
+      <!-- Empty state -->
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon" aria-hidden="true">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <rect width="64" height="64" rx="16" fill="url(#emptyGrad)" fill-opacity="0.15"/>
+            <path d="M20 32L28 40L44 24" stroke="url(#emptyGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="emptyGrad" x1="0" y1="0" x2="64" y2="64">
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="100%" stop-color="#8b5cf6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h2 class="empty-title">Ready to analyse</h2>
+        <p class="empty-desc">Fill in the form on the left and hit <strong>Generate</strong> or <strong>Review</strong> to see structured AI analysis appear here.</p>
+        <div class="feature-pills">
+          <span class="pill">Happy path</span>
+          <span class="pill">Negative cases</span>
+          <span class="pill">Boundary tests</span>
+          <span class="pill">Regression</span>
+          <span class="pill">Architecture</span>
+          <span class="pill">Security scan</span>
+          <span class="pill">Swift best practices</span>
+          <span class="pill">Performance</span>
+        </div>
+      </div>
+
+      <!-- Loading state -->
+      <div id="loadingState" class="loading-state hidden">
+        <div class="agent-loop-viz" aria-label="Agent processing stages">
+          <div class="loop-stage" id="stage-understand" data-stage="understand">
+            <div class="stage-dot"></div>
+            <span>Understand</span>
+          </div>
+          <div class="loop-arrow" aria-hidden="true">→</div>
+          <div class="loop-stage" id="stage-plan" data-stage="plan">
+            <div class="stage-dot"></div>
+            <span>Plan</span>
+          </div>
+          <div class="loop-arrow" aria-hidden="true">→</div>
+          <div class="loop-stage" id="stage-tool" data-stage="tool">
+            <div class="stage-dot"></div>
+            <span>Tool Call</span>
+          </div>
+          <div class="loop-arrow" aria-hidden="true">→</div>
+          <div class="loop-stage" id="stage-validate" data-stage="validate">
+            <div class="stage-dot"></div>
+            <span>Validate</span>
+          </div>
+          <div class="loop-arrow" aria-hidden="true">→</div>
+          <div class="loop-stage" id="stage-respond" data-stage="respond">
+            <div class="stage-dot"></div>
+            <span>Respond</span>
+          </div>
+        </div>
+        <div class="loading-message" id="loadingMessage" aria-live="polite">Initialising agent…</div>
+        <div class="loading-bar">
+          <div class="loading-bar-fill"></div>
+        </div>
+      </div>
+
+      <!-- Results: Test Suite -->
+      <div id="testSuiteResult" class="result-container hidden">
+        <div class="result-header">
+          <div class="result-meta" id="testSuiteMeta"></div>
+          <div class="result-actions">
+            <button class="action-btn" id="exportTestSuite" title="Export to Excel">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M2.5 13.5h11M8 2.5v8m0 0l-3-3m3 3l3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Export Excel
+            </button>
+            <button class="action-btn" id="copyTestSuite" title="Copy as JSON">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              Copy JSON
+            </button>
+          </div>
+        </div>
+        <div id="testSuiteStats" class="stats-row"></div>
+        <div id="testCasesList" class="test-cases-list"></div>
+        <div id="coverageNotes" class="coverage-notes"></div>
+      </div>
+
+      <!-- Results: PR Review -->
+      <div id="prReviewResult" class="result-container hidden">
+        <div class="result-header">
+          <div class="result-meta" id="prReviewMeta"></div>
+          <div class="result-actions">
+            <button class="action-btn" id="exportPRReview" title="Export to Excel">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M2.5 13.5h11M8 2.5v8m0 0l-3-3m3 3l3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Export Excel
+            </button>
+            <button class="action-btn" id="copyPRReview" title="Copy as JSON">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5" stroke="currentColor" stroke-width="1.5"/>
+              </svg>
+              Copy JSON
+            </button>
+          </div>
+        </div>
+        <div id="mergeRecommendation" class="merge-rec"></div>
+        <div id="prSummary" class="pr-summary"></div>
+        <div id="secretScanBanner" class="secret-banner hidden"></div>
+        <div id="prStats" class="stats-row"></div>
+        <div id="issueFilters" class="issue-filters"></div>
+        <div id="issuesList" class="issues-list"></div>
+      </div>
+
+      <!-- Error state -->
+      <div id="errorState" class="error-state hidden">
+        <div class="error-icon" aria-hidden="true">⚠️</div>
+        <h2 class="error-title">Something went wrong</h2>
+        <p id="errorMessage" class="error-message"></p>
+        <button class="btn-secondary" onclick="clearError()">Try Again</button>
+      </div>
+
+    </section>
+  </main>
+
+  <script src="FileSaver.min.js"></script>
+  <script src="xlsx.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
