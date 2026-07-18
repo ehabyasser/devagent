@@ -101,3 +101,70 @@ async def assist_stream(req: AssistRequest):
             "X-Accel-Buffering": "no",
         },
     )
+
+
+# ── Rules Suggestion endpoint ──────────────────────────────────────────────
+_RULES_SUGGEST_SYSTEM = """You are an expert software architect and security engineer for a banking iOS application.
+Given the user's description of a coding standard or practice, generate 3–5 concrete, actionable code review rules.
+
+Return ONLY a valid JSON array (no markdown, no explanation) with this exact structure:
+[
+  {
+    "name": "Short rule name (max 60 chars)",
+    "category": "one of: architecture|swift_best_practices|concurrency|performance|memory_management|security|networking|ui_ux|testing|code_quality|git_hygiene|banking|custom",
+    "description": "Clear, specific description of what to enforce and why (2-4 sentences)",
+    "severity": "one of: critical|high|medium|low|info",
+    "weight": <integer 1-10>,
+    "auto_fix": false,
+    "tags": ["tag1", "tag2"],
+    "examples": {
+      "bad": "Brief bad code example",
+      "good": "Brief good code example"
+    }
+  }
+]
+
+Make rules specific to banking/fintech iOS (Swift) development. Severity must reflect actual risk."""
+
+
+class RulesSuggestRequest(BaseModel):
+    description: str = Field(..., min_length=5, max_length=2000)
+
+
+class SuggestedRule(BaseModel):
+    name: str
+    category: str
+    description: str
+    severity: str = "medium"
+    weight: int = 5
+    auto_fix: bool = False
+    tags: list[str] = []
+    examples: dict = {}
+
+
+@router.post("/assist/rules-suggest", response_model=list[SuggestedRule])
+async def rules_suggest(req: RulesSuggestRequest):
+    import json
+    llm = get_llm()
+    messages = [
+        {"role": "system", "content": _RULES_SUGGEST_SYSTEM},
+        {"role": "user",   "content": f"Generate rules for: {req.description}"},
+    ]
+    raw = await llm.complete(messages, temperature=0.3, max_tokens=2048, response_format="json_object")
+    # llm may return a JSON object wrapping the array
+    try:
+        parsed = json.loads(raw)
+    except Exception:
+        # strip markdown fences if present
+        import re
+        cleaned = re.sub(r"```(?:json)?|```", "", raw).strip()
+        parsed = json.loads(cleaned)
+
+    if isinstance(parsed, dict):
+        # some models wrap in {"rules": [...]}
+        for v in parsed.values():
+            if isinstance(v, list):
+                parsed = v
+                break
+
+    return [SuggestedRule(**r) for r in parsed[:5]]

@@ -9,6 +9,8 @@
 /* ── State ─────────────────────────────────────────────────────────── */
 let allRules = [];
 let selectedCategory = 'all';
+let selectedRuleIds  = new Set();   // tracks checked rule IDs
+let currentFilteredRules = [];      // last rendered set for select-all
 
 const SEVERITY_ORDER = ['critical', 'high', 'medium', 'low', 'info'];
 const SEVERITY_COLORS = {
@@ -90,10 +92,12 @@ function applyFilters() {
 }
 
 function renderRulesGrid(rules) {
+  currentFilteredRules = rules;   // save for select-all
   const grid = document.getElementById('rulesGrid');
   if (!grid) return;
   if (rules.length === 0) {
     grid.innerHTML = '<div class="rules-empty">No rules match your filter.</div>';
+    updateBulkBar();
     return;
   }
   grid.innerHTML = rules.map(r => renderRuleCard(r)).join('');
@@ -101,7 +105,7 @@ function renderRulesGrid(rules) {
   // Bind toggle switches
   grid.querySelectorAll('.rule-toggle').forEach(toggle => {
     toggle.addEventListener('change', async (e) => {
-      const ruleId = e.target.dataset.ruleId;
+      const ruleId  = e.target.dataset.ruleId;
       const enabled = e.target.checked;
       await patchRule(ruleId, { enabled });
       const rule = allRules.find(r => r.id === ruleId);
@@ -110,10 +114,30 @@ function renderRulesGrid(rules) {
     });
   });
 
-  // Expand details
+  // Per-card selection checkboxes
+  grid.querySelectorAll('.rule-select-cb').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) {
+        selectedRuleIds.add(cb.dataset.ruleId);
+      } else {
+        selectedRuleIds.delete(cb.dataset.ruleId);
+      }
+      updateBulkBar();
+      updateSelectAllCheckbox();
+    });
+  });
+
+  // Reflect existing selection after re-render
+  grid.querySelectorAll('.rule-select-cb').forEach(cb => {
+    if (selectedRuleIds.has(cb.dataset.ruleId)) cb.checked = true;
+  });
+  updateBulkBar();
+  updateSelectAllCheckbox();
+
+  // Expand details on header click
   grid.querySelectorAll('.rule-card').forEach(card => {
     card.querySelector('.rule-card-header')?.addEventListener('click', (e) => {
-      if (e.target.closest('.rule-toggle-wrap')) return;
+      if (e.target.closest('.rule-toggle-wrap') || e.target.closest('.rule-select-cb')) return;
       card.classList.toggle('expanded');
     });
   });
@@ -143,6 +167,9 @@ function renderRuleCard(rule) {
 
   return `
 <div class="rule-card ${rule.enabled ? 'rule-enabled' : 'rule-disabled'}" data-rule-id="${rule.id}">
+  <div class="rule-select-col">
+    <input type="checkbox" class="rule-select-cb" data-rule-id="${rule.id}" aria-label="Select rule"/>
+  </div>
   <div class="rule-card-header">
     <div class="rule-severity-bar" style="background:${sevColor}"></div>
     <div class="rule-card-main">
@@ -195,9 +222,104 @@ async function patchRule(ruleId, patch) {
   }
 }
 
-/* ── Search ──────────────────────────────────────────────────────── */
+/* ── Bulk selection helpers ─────────────────────────────────────── */
+function updateSelectAllCheckbox() {
+  const cb = document.getElementById('selectAllRules');
+  if (!cb) return;
+  const visibleIds = currentFilteredRules.map(r => r.id);
+  const allSelected = visibleIds.length > 0 && visibleIds.every(id => selectedRuleIds.has(id));
+  const someSelected = visibleIds.some(id => selectedRuleIds.has(id));
+  cb.checked = allSelected;
+  cb.indeterminate = someSelected && !allSelected;
+}
+
+function updateBulkBar() {
+  const bar   = document.getElementById('bulkActionBar');
+  const label = document.getElementById('bulkCountLabel');
+  if (!bar) return;
+  if (selectedRuleIds.size > 0) {
+    bar.classList.remove('hidden');
+    if (label) label.textContent = `${selectedRuleIds.size} selected`;
+  } else {
+    bar.classList.add('hidden');
+  }
+}
+
+async function bulkPatch(patch) {
+  const ids = [...selectedRuleIds];
+  await Promise.all(ids.map(id => patchRule(id, patch)));
+  ids.forEach(id => {
+    const rule = allRules.find(r => r.id === id);
+    if (rule && patch.enabled !== undefined) rule.enabled = patch.enabled;
+  });
+  updateActiveCount();
+  applyFilters();
+}
+
+async function bulkDelete() {
+  const ids = [...selectedRuleIds].filter(id => {
+    const rule = allRules.find(r => r.id === id);
+    return rule?.custom === true;
+  });
+  if (ids.length === 0) {
+    alert('Only custom rules can be deleted. Built-in rules cannot be removed.');
+    return;
+  }
+  if (!confirm(`Delete ${ids.length} custom rule${ids.length === 1 ? '' : 's'}? This cannot be undone.`)) return;
+  await Promise.all(ids.map(id =>
+    fetch(`/api/rules/${id}`, { method: 'DELETE' })
+  ));
+  allRules = allRules.filter(r => !ids.includes(r.id));
+  selectedRuleIds.clear();
+  renderSidebar();
+  applyFilters();
+  updateActiveCount();
+}
+
+/* ── Search + Bulk Action Bar ────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('rulesSearch')?.addEventListener('input', applyFilters);
+
+  // Select All checkbox
+  document.getElementById('selectAllRules')?.addEventListener('change', function () {
+    const visibleIds = currentFilteredRules.map(r => r.id);
+    if (this.checked) {
+      visibleIds.forEach(id => selectedRuleIds.add(id));
+    } else {
+      visibleIds.forEach(id => selectedRuleIds.delete(id));
+    }
+    // Sync visible card checkboxes
+    document.querySelectorAll('.rule-select-cb').forEach(cb => {
+      cb.checked = selectedRuleIds.has(cb.dataset.ruleId);
+    });
+    updateBulkBar();
+  });
+
+  document.getElementById('bulkEnableBtn')?.addEventListener('click',  () => bulkPatch({ enabled: true }));
+  document.getElementById('bulkDisableBtn')?.addEventListener('click', () => bulkPatch({ enabled: false }));
+  document.getElementById('bulkDeleteBtn')?.addEventListener('click',  bulkDelete);
+  document.getElementById('bulkClearBtn')?.addEventListener('click', () => {
+    selectedRuleIds.clear();
+    document.querySelectorAll('.rule-select-cb').forEach(cb => { cb.checked = false; });
+    updateBulkBar();
+    updateSelectAllCheckbox();
+  });
+
+  // Delete button inside rule cards (event delegation)
+  document.getElementById('rulesGrid')?.addEventListener('click', async (e) => {
+    const delBtn = e.target.closest('.rule-delete-btn');
+    if (!delBtn) return;
+    const ruleId = delBtn.dataset.ruleId;
+    if (!confirm('Delete this custom rule?')) return;
+    const res = await fetch(`/api/rules/${ruleId}`, { method: 'DELETE' });
+    if (res.ok || res.status === 204) {
+      allRules = allRules.filter(r => r.id !== ruleId);
+      selectedRuleIds.delete(ruleId);
+      renderSidebar();
+      applyFilters();
+      updateActiveCount();
+    }
+  });
 });
 
 /* ── New Rule Modal ──────────────────────────────────────────────── */

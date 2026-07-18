@@ -374,6 +374,32 @@ Acceptance Criteria:
           </button>
         </div>
       </div>
+
+      <!-- Bulk selection bar (hidden until items selected) -->
+      <div id="bulkActionBar" class="bulk-action-bar hidden">
+        <label class="bulk-select-all-wrap" title="Select / deselect all visible">
+          <input type="checkbox" id="selectAllRules" class="bulk-select-all-cb"/>
+          <span id="bulkCountLabel" class="bulk-count">0 selected</span>
+        </label>
+        <div class="bulk-actions">
+          <button class="bulk-btn bulk-btn-enable"  id="bulkEnableBtn"  title="Enable selected">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+            Enable
+          </button>
+          <button class="bulk-btn bulk-btn-disable" id="bulkDisableBtn" title="Disable selected">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+            Disable
+          </button>
+          <button class="bulk-btn bulk-btn-delete"  id="bulkDeleteBtn"  title="Delete selected custom rules">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Delete
+          </button>
+          <button class="bulk-btn bulk-btn-clear" id="bulkClearBtn" title="Clear selection">
+            Clear
+          </button>
+        </div>
+      </div>
+
       <div class="rules-layout">
         <nav class="rules-sidebar" id="rulesSidebar" aria-label="Rule categories"></nav>
         <div class="rules-grid" id="rulesGrid"></div>

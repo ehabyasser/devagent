@@ -1892,3 +1892,185 @@ code {
   .ai-panel { width: calc(100vw - 32px); }
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RULES BULK SELECTION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Bulk action bar */
+.bulk-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 28px;
+  background: rgba(99,102,241,0.08);
+  border-bottom: 1px solid rgba(99,102,241,0.2);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.bulk-action-bar.hidden { display: none; }
+
+.bulk-select-all-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.bulk-select-all-cb {
+  width: 16px; height: 16px;
+  accent-color: #6366f1;
+  cursor: pointer;
+}
+.bulk-count {
+  font-size: .8rem;
+  font-weight: 600;
+  color: #818cf8;
+}
+
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.bulk-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 7px;
+  border: 1px solid rgba(255,255,255,0.1);
+  font-size: .75rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  background: rgba(255,255,255,0.04);
+  color: var(--text-secondary);
+}
+.bulk-btn:hover { transform: translateY(-1px); }
+
+.bulk-btn-enable  { border-color: rgba(34,197,94,0.3);  color: #22c55e; }
+.bulk-btn-enable:hover  { background: rgba(34,197,94,0.12); }
+.bulk-btn-disable { border-color: rgba(234,179,8,0.3);  color: #eab308; }
+.bulk-btn-disable:hover { background: rgba(234,179,8,0.12); }
+.bulk-btn-delete  { border-color: rgba(239,68,68,0.3);  color: #ef4444; }
+.bulk-btn-delete:hover  { background: rgba(239,68,68,0.12); }
+.bulk-btn-clear   { border-color: rgba(255,255,255,0.1); color: var(--text-tertiary); }
+.bulk-btn-clear:hover { background: rgba(255,255,255,0.07); }
+
+/* Per-card selection checkbox column */
+.rule-select-col {
+  display: flex;
+  align-items: flex-start;
+  padding: 14px 0 14px 14px;
+  flex-shrink: 0;
+}
+.rule-select-cb {
+  width: 16px; height: 16px;
+  accent-color: #6366f1;
+  cursor: pointer;
+  margin-top: 2px;
+}
+
+/* Make rule-card a row to include checkbox column */
+.rule-card {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start;
+}
+.rule-card > .rule-card-header {
+  flex: 1;
+}
+.rule-card > .rule-card-detail {
+  /* detail is a child of rule-card, needs to span full width */
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AI ASSISTANT — RULE SUGGESTION CARDS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ai-rules-intro {
+  font-size: .75rem;
+  color: #818cf8;
+  font-weight: 600;
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+
+.ai-rule-card {
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(99,102,241,0.04);
+  margin-bottom: 8px;
+  position: relative;
+  transition: border-color 0.15s;
+}
+.ai-rule-card:hover { border-color: rgba(99,102,241,0.4); }
+.ai-rule-card-added {
+  opacity: 0.5;
+  border-color: rgba(34,197,94,0.4);
+  background: rgba(34,197,94,0.04);
+}
+
+.ai-rule-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.ai-rule-cat {
+  font-size: .65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #818cf8;
+  background: rgba(99,102,241,0.12);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.ai-rule-sev {
+  font-size: .65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.ai-rule-name {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+  line-height: 1.3;
+}
+.ai-rule-desc {
+  font-size: .74rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+
+.ai-add-rule-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 7px;
+  border: 1px solid rgba(99,102,241,0.35);
+  background: rgba(99,102,241,0.1);
+  color: #818cf8;
+  font-size: .73rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.ai-add-rule-btn:hover:not(:disabled) {
+  background: rgba(99,102,241,0.2);
+  border-color: rgba(99,102,241,0.6);
+  transform: translateY(-1px);
+}
+.ai-add-rule-btn:disabled { opacity: 0.5; cursor: wait; }
+

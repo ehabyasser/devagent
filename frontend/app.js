@@ -151,6 +151,7 @@ async function checkHealth() {
 /* ── Mode switch ─────────────────────────────────────────────────────────── */
 function switchMode(mode) {
   currentMode = mode;
+  window.devAgentMode = mode;   // expose for assistant.js
 
   // All tabs
   document.querySelectorAll('.mode-tab').forEach(function(t) {
