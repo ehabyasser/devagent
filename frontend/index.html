@@ -9,6 +9,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <!-- Auth guard: load synchronously so redirect happens before render -->
+  <script src="auth.js"></script>
+  <script>
+    // Immediately start auth check — page stays hidden until confirmed
+    document.documentElement.style.visibility = 'hidden';
+    window.__authReady = window.devauth.requireAuth('/login.html').then(ok => {
+      if (ok) document.documentElement.style.visibility = '';
+    });
+  </script>
 </head>
 <body>
 
@@ -30,7 +39,7 @@
         </div>
         <div class="logo-text">
           <span class="logo-title">DevAgent</span>
-          <span class="logo-badge">V1</span>
+          <span class="logo-badge">V2</span>
         </div>
       </div>
 
@@ -96,6 +105,29 @@
         <span class="status-dot" id="statusDot" aria-hidden="true"></span>
         <span id="statusText" class="status-text">Connecting…</span>
       </div>
+
+      <!-- User nav -->
+      <div class="user-nav" id="userNav" style="position:relative;">
+        <button class="user-nav-btn" id="userNavBtn" aria-expanded="false" aria-haspopup="true" title="Account">
+          <div class="user-avatar" id="userAvatar">?</div>
+          <span class="user-name" id="userName">Loading…</span>
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+        <div class="user-dropdown" id="userDropdown" role="menu" style="display:none;">
+          <div class="user-dropdown-header" id="userDropdownEmail"></div>
+          <hr class="user-dropdown-divider"/>
+          <button class="user-dropdown-item" id="signOutBtn" role="menuitem">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Sign Out
+          </button>
+        </div>
+      </div>
+
     </div>
   </header>
 
@@ -569,5 +601,41 @@ Acceptance Criteria:
   <script src="rules_manager.js"></script>
   <script src="assistant.js"></script>
   <script src="history.js"></script>
+  <!-- User nav init (after auth.js and DOM) -->
+  <script>
+  (async () => {
+    const user = await window.devauth.loadUser();
+    if (!user) return;
+    const avatarEl  = document.getElementById('userAvatar');
+    const nameEl    = document.getElementById('userName');
+    const emailEl   = document.getElementById('userDropdownEmail');
+    const dropBtn   = document.getElementById('userNavBtn');
+    const dropdown  = document.getElementById('userDropdown');
+    const signOutBtn = document.getElementById('signOutBtn');
+
+    const initials = (user.full_name || user.email)
+      .split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    if (avatarEl) avatarEl.textContent = initials;
+    if (nameEl)   nameEl.textContent   = user.full_name || user.email.split('@')[0];
+    if (emailEl)  emailEl.textContent  = user.email;
+
+    // Dropdown toggle
+    if (dropBtn && dropdown) {
+      dropBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const open = dropdown.style.display === 'block';
+        dropdown.style.display = open ? 'none' : 'block';
+        dropBtn.setAttribute('aria-expanded', String(!open));
+      });
+      document.addEventListener('click', () => {
+        dropdown.style.display = 'none';
+        dropBtn.setAttribute('aria-expanded', 'false');
+      });
+    }
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', () => window.devauth.logout());
+    }
+  })();
+  </script>
 </body>
 </html>

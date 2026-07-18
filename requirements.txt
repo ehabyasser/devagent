@@ -8,7 +8,15 @@ openai==1.58.1
 anthropic==0.40.0
 sse-starlette==2.1.3
 unidiff==0.7.5
-pytest==8.3.4
-pytest-asyncio==0.24.0
 aiosqlite==0.20.0
 google-genai>=1.0.0
+
+# ── Phase 1: Authentication ───────────────────────────────────────────────────
+bcrypt==5.0.0                    # password hashing (use directly, not via passlib)
+python-jose[cryptography]==3.3.0 # JWT tokens
+slowapi==0.1.9                  # rate limiting
+aiosmtplib==3.0.2               # async SMTP email
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+pytest==8.3.4
+pytest-asyncio==0.24.0
