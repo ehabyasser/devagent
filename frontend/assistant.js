@@ -8,10 +8,10 @@
   'use strict';
 
   /* ── State ──────────────────────────────────────────────────────────── */
-  let isOpen = false;
-  let isStreaming = false;
-  let history = [];   // [{role, content}]
-  let currentMode = 'testgen';
+  let isOpen      = false;
+  let isStreaming  = false;
+  let history      = [];   // [{role, content}]
+  let currentMode  = 'testgen';
 
   const MODE_META = {
     testgen:    { label: 'Test Generator',  icon: '🧪', hint: 'Describe the feature or user story in your own words…', field: 'featureDescription' },
@@ -19,25 +19,62 @@
     rules:      { label: 'Rules Manager',   icon: '📋', hint: 'Describe the coding standard you want to enforce…',    field: null },
   };
 
-  /* ── Helpers ────────────────────────────────────────────────────────── */
+  /* ── HTML-escape ───────────────────────────────────────────────────── */
   function esc(s) {
-    return String(s || '')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
+  /* ── Format text: escape first, then apply light markdown ────────────
+     Handles bold, numbered lists, bullet lists, code spans, line breaks
+  ─────────────────────────────────────────────────────────────────────── */
   function fmt(text) {
-    // Minimal markdown: bold, italic, code, line breaks
-    return esc(text)
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>')
-      .replace(/\n/g, '<br>');
+    if (!text) return '';
+    let out = esc(text);
+
+    // Bold  **text**
+    out = out.replace(/\*\*(.+?)\*\*/gs, '<strong>$1</strong>');
+    // Italic  *text* (not bold)
+    out = out.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/gs, '<em>$1</em>');
+    // Inline code  `code`
+    out = out.replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>');
+
+    // Numbered list: lines starting with "1. " etc → wrap in <ol>
+    // Bullet list:   lines starting with "- " or "• "
+    const lines = out.split('\n');
+    const result = [];
+    let inOl = false, inUl = false;
+
+    for (const line of lines) {
+      const numMatch = line.match(/^(\d+)\.\s+(.*)/);
+      const bulMatch = line.match(/^[-•]\s+(.*)/);
+
+      if (numMatch) {
+        if (inUl) { result.push('</ul>'); inUl = false; }
+        if (!inOl) { result.push('<ol class="ai-list">'); inOl = true; }
+        result.push(`<li>${numMatch[2]}</li>`);
+      } else if (bulMatch) {
+        if (inOl) { result.push('</ol>'); inOl = false; }
+        if (!inUl) { result.push('<ul class="ai-list">'); inUl = true; }
+        result.push(`<li>${bulMatch[1]}</li>`);
+      } else {
+        if (inOl) { result.push('</ol>'); inOl = false; }
+        if (inUl) { result.push('</ul>'); inUl = false; }
+        result.push(line === '' ? '<br>' : `<span>${line}</span><br>`);
+      }
+    }
+    if (inOl) result.push('</ol>');
+    if (inUl) result.push('</ul>');
+
+    return result.join('');
   }
 
   /* ── Get current mode from app.js global ───────────────────────────── */
   function getAppMode() {
-    // app.js exposes currentMode as a global
     try { return window.currentMode || 'testgen'; } catch (_) { return 'testgen'; }
   }
 
@@ -95,14 +132,6 @@
           </div>
         </div>
 
-        <!-- Typing indicator (hidden by default) -->
-        <div class="ai-typing hidden" id="aiTyping">
-          <div class="ai-typing-dots">
-            <span></span><span></span><span></span>
-          </div>
-          <span class="ai-typing-label">Thinking…</span>
-        </div>
-
         <!-- Input area -->
         <div class="ai-input-area">
           <textarea
@@ -127,38 +156,61 @@
     document.body.appendChild(wrap);
   }
 
-  /* ── Render a message bubble ─────────────────────────────────────────── */
-  function appendMessage(role, content, id) {
+  /* ── Append a user bubble ───────────────────────────────────────────── */
+  function appendUserBubble(content) {
     const container = document.getElementById('aiMessages');
-    const welcome = document.getElementById('aiWelcome');
+    const welcome   = document.getElementById('aiWelcome');
     if (welcome) welcome.style.display = 'none';
 
     const div = document.createElement('div');
-    div.className = `ai-msg ai-msg-${role}`;
-    if (id) div.id = id;
+    div.className = 'ai-msg ai-msg-user';
+    div.innerHTML = `<div class="ai-bubble ai-bubble-user">${esc(content)}</div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
 
-    if (role === 'user') {
-      div.innerHTML = `<div class="ai-bubble ai-bubble-user">${esc(content)}</div>`;
-    } else {
-      div.innerHTML = `
-        <div class="ai-bubble-wrap">
-          <div class="ai-bubble ai-bubble-assistant" id="${id}-text">${fmt(content)}</div>
-          <div class="ai-bubble-actions">
-            <button class="ai-action-btn ai-copy-btn" title="Copy to clipboard">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="1.8"/></svg>
-              Copy
-            </button>
-            <button class="ai-action-btn ai-insert-btn" title="Insert into active field">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Insert
-            </button>
-          </div>
-        </div>`;
+  /* ── Append assistant bubble with loading dots ──────────────────────── */
+  function appendAssistantBubble(id) {
+    const container = document.getElementById('aiMessages');
 
-      // Wire copy button
-      div.querySelector('.ai-copy-btn').addEventListener('click', function () {
-        const text = document.getElementById(id + '-text')?.innerText || content;
-        navigator.clipboard.writeText(text).then(() => {
+    const div = document.createElement('div');
+    div.className = 'ai-msg ai-msg-assistant';
+    div.id = id;
+    div.innerHTML = `
+      <div class="ai-bubble-wrap">
+        <div class="ai-bubble ai-bubble-assistant" id="${id}-text">
+          <span class="ai-loading-dots">
+            <span></span><span></span><span></span>
+          </span>
+        </div>
+        <div class="ai-bubble-actions" id="${id}-actions" style="display:none">
+          <button class="ai-action-btn ai-copy-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="1.8"/></svg>
+            Copy
+          </button>
+          <button class="ai-action-btn ai-insert-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Insert
+          </button>
+        </div>
+      </div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return div;
+  }
+
+  /* ── Finalize an assistant bubble after streaming ───────────────────── */
+  function finalizeAssistantBubble(id, fullText) {
+    const textEl    = document.getElementById(id + '-text');
+    const actionsEl = document.getElementById(id + '-actions');
+    if (textEl) textEl.innerHTML = fmt(fullText);
+    if (actionsEl) actionsEl.style.display = '';
+
+    // Wire copy
+    const copyBtn = actionsEl?.querySelector('.ai-copy-btn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        navigator.clipboard.writeText(fullText).then(() => {
           this.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/></svg> Copied!`;
           this.style.color = '#22c55e';
           setTimeout(() => {
@@ -167,18 +219,18 @@
           }, 2000);
         });
       });
+    }
 
-      // Wire insert button
-      div.querySelector('.ai-insert-btn').addEventListener('click', function () {
-        const text = document.getElementById(id + '-text')?.innerText || content;
-        const meta = MODE_META[currentMode];
-        const fieldId = meta?.field;
-        const field = fieldId ? document.getElementById(fieldId) : null;
+    // Wire insert
+    const insertBtn = actionsEl?.querySelector('.ai-insert-btn');
+    if (insertBtn) {
+      insertBtn.addEventListener('click', function () {
+        const meta  = MODE_META[currentMode];
+        const field = meta?.field ? document.getElementById(meta.field) : null;
         if (field) {
-          field.value = text;
+          field.value = fullText;
           field.dispatchEvent(new Event('input', { bubbles: true }));
           field.focus();
-          // Switch to the right mode
           if (typeof switchMode === 'function') switchMode(currentMode);
           this.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/></svg> Inserted!`;
           this.style.color = '#22c55e';
@@ -187,17 +239,12 @@
             this.style.color = '';
           }, 2000);
         } else {
-          // No field — just copy
-          navigator.clipboard.writeText(text);
+          navigator.clipboard.writeText(fullText);
           this.textContent = 'Copied!';
           setTimeout(() => { this.textContent = 'Insert'; }, 2000);
         }
       });
     }
-
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-    return div;
   }
 
   /* ── Stream a response ───────────────────────────────────────────────── */
@@ -206,16 +253,14 @@
     isStreaming = true;
 
     const sendBtn = document.getElementById('aiSendBtn');
-    const typing  = document.getElementById('aiTyping');
     if (sendBtn) sendBtn.disabled = true;
-    if (typing)  typing.classList.remove('hidden');
 
-    // Add user bubble
-    appendMessage('user', userMsg);
+    appendUserBubble(userMsg);
 
-    // Prepare assistant bubble
-    const msgId = 'ai-resp-' + Date.now();
-    let accumulated = '';
+    const msgId      = 'ai-resp-' + Date.now();
+    let accumulated  = '';
+
+    appendAssistantBubble(msgId);
 
     try {
       const res = await fetch('/api/assist/stream', {
@@ -223,64 +268,74 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMsg,
-          mode: currentMode,
+          mode:    currentMode,
           history: history.slice(-6),
         }),
       });
 
-      if (!res.ok) throw new Error('Assistant unavailable');
+      if (!res.ok) throw new Error('Assistant unavailable (HTTP ' + res.status + ')');
 
-      if (typing) typing.classList.add('hidden');
-      const assistDiv = appendMessage('assistant', '', msgId);
-      const textEl = document.getElementById(msgId + '-text');
-
-      const reader = res.body.getReader();
+      const reader  = res.body.getReader();
       const decoder = new TextDecoder();
-      let buffer = '';
+      let   sseBuffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        buffer += decoder.decode(value, { stream: true });
 
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
+        sseBuffer += decoder.decode(value, { stream: true });
 
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const data = line.slice(6).trim();
-          if (data === '[DONE]') break;
-          try {
-            const { token } = JSON.parse(data);
-            accumulated += token;
-            if (textEl) textEl.innerHTML = fmt(accumulated);
-            const msgs = document.getElementById('aiMessages');
-            if (msgs) msgs.scrollTop = msgs.scrollHeight;
-          } catch (_) {}
+        // SSE messages are separated by \n\n
+        const parts = sseBuffer.split('\n\n');
+        sseBuffer = parts.pop() ?? '';   // keep incomplete last chunk
+
+        for (const part of parts) {
+          for (const line of part.split('\n')) {
+            if (!line.startsWith('data: ')) continue;
+            const raw = line.slice(6).trim();
+            if (raw === '[DONE]') break;
+            try {
+              const { token } = JSON.parse(raw);
+              if (token) {
+                accumulated += token;
+                // Show partial text while streaming (replace dots after first token)
+                const textEl = document.getElementById(msgId + '-text');
+                if (textEl) {
+                  textEl.innerHTML = fmt(accumulated) +
+                    '<span class="ai-cursor">▍</span>';
+                }
+                const msgs = document.getElementById('aiMessages');
+                if (msgs) msgs.scrollTop = msgs.scrollHeight;
+              }
+            } catch (_) { /* ignore malformed chunks */ }
+          }
         }
       }
 
-      // Save to history
-      history.push({ role: 'user', content: userMsg });
+      // Save history
+      history.push({ role: 'user',      content: userMsg });
       history.push({ role: 'assistant', content: accumulated });
 
+      // Finalize bubble (remove cursor, show actions)
+      finalizeAssistantBubble(msgId, accumulated);
+
     } catch (err) {
-      if (typing) typing.classList.add('hidden');
-      appendMessage('assistant', '⚠️ ' + (err.message || 'Something went wrong. Please try again.'), msgId);
+      const textEl    = document.getElementById(msgId + '-text');
+      const actionsEl = document.getElementById(msgId + '-actions');
+      if (textEl)    textEl.innerHTML = `<span style="color:#f87171">⚠️ ${esc(err.message || 'Something went wrong. Please try again.')}</span>`;
+      if (actionsEl) actionsEl.style.display = 'none';
     } finally {
       isStreaming = false;
-      if (sendBtn) {
-        const inp = document.getElementById('aiInput');
-        sendBtn.disabled = !(inp && inp.value.trim());
-      }
+      const inp = document.getElementById('aiInput');
+      if (sendBtn) sendBtn.disabled = !(inp && inp.value.trim());
     }
   }
 
-  /* ── Toggle panel open/close ─────────────────────────────────────────── */
+  /* ── Toggle panel ────────────────────────────────────────────────────── */
   function togglePanel() {
     isOpen = !isOpen;
-    const panel = document.getElementById('aiAssistPanel');
-    const fab   = document.getElementById('aiAssistFab');
+    const panel     = document.getElementById('aiAssistPanel');
+    const fab       = document.getElementById('aiAssistFab');
     const iconChat  = fab?.querySelector('.ai-fab-icon-chat');
     const iconClose = fab?.querySelector('.ai-fab-icon-close');
 
@@ -290,7 +345,6 @@
       if (iconChat)  iconChat.classList.add('hidden');
       if (iconClose) iconClose.classList.remove('hidden');
       fab?.classList.add('ai-fab-active');
-      // Sync mode
       syncMode();
       setTimeout(() => document.getElementById('aiInput')?.focus(), 150);
     } else {
@@ -309,23 +363,23 @@
   /* ── Sync mode from app.js ───────────────────────────────────────────── */
   function syncMode() {
     const appMode = getAppMode();
-    const meta = MODE_META[appMode] || MODE_META.testgen;
-    currentMode = appMode;
+    const meta    = MODE_META[appMode] || MODE_META.testgen;
+    currentMode   = appMode;
 
-    const label = document.getElementById('aiModeLabel');
-    const inp   = document.getElementById('aiInput');
-    const chips = document.querySelectorAll('.ai-mode-chip');
+    const label   = document.getElementById('aiModeLabel');
+    const inp     = document.getElementById('aiInput');
+    const chips   = document.querySelectorAll('.ai-mode-chip');
 
-    if (label) label.textContent = meta.label;
-    if (inp)   inp.placeholder = meta.hint;
+    if (label) label.textContent  = meta.label;
+    if (inp)   inp.placeholder    = meta.hint;
     chips.forEach(c => c.classList.toggle('active', c.dataset.mode === currentMode));
   }
 
-  /* ── Init ────────────────────────────────────────────────────────────── */
+  /* ── Init ─────────────────────────────────────────────────────────────── */
   function init() {
     buildWidget();
 
-    const fab     = document.getElementById('aiAssistFab');
+    const fab      = document.getElementById('aiAssistFab');
     const closeBtn = document.getElementById('aiCloseBtn');
     const clearBtn = document.getElementById('aiClearBtn');
     const sendBtn  = document.getElementById('aiSendBtn');
@@ -336,21 +390,17 @@
 
     clearBtn?.addEventListener('click', () => {
       history = [];
-      const msgs = document.getElementById('aiMessages');
+      const msgs    = document.getElementById('aiMessages');
       const welcome = document.getElementById('aiWelcome');
-      if (msgs) {
-        // Remove all messages (keep welcome)
-        Array.from(msgs.querySelectorAll('.ai-msg')).forEach(el => el.remove());
-      }
+      if (msgs) Array.from(msgs.querySelectorAll('.ai-msg')).forEach(el => el.remove());
       if (welcome) welcome.style.display = '';
     });
 
     input?.addEventListener('input', () => {
       const len = input.value.length;
-      const cc = document.getElementById('aiCharCount');
+      const cc  = document.getElementById('aiCharCount');
       if (cc) cc.textContent = `${len} / 2000`;
       if (sendBtn) sendBtn.disabled = !input.value.trim() || isStreaming;
-      // Auto-resize
       input.style.height = 'auto';
       input.style.height = Math.min(input.scrollHeight, 120) + 'px';
     });
@@ -358,7 +408,7 @@
     input?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        sendBtn?.click();
+        if (!sendBtn?.disabled) sendBtn?.click();
       }
     });
 
@@ -373,33 +423,31 @@
       streamResponse(msg);
     });
 
-    // Mode chips in welcome
+    // Mode chips in welcome screen
     document.addEventListener('click', (e) => {
       const chip = e.target.closest('.ai-mode-chip');
       if (!chip) return;
       currentMode = chip.dataset.mode;
       document.querySelectorAll('.ai-mode-chip').forEach(c => c.classList.toggle('active', c === chip));
-      const meta = MODE_META[currentMode];
-      const inp = document.getElementById('aiInput');
+      const meta  = MODE_META[currentMode];
+      const inp   = document.getElementById('aiInput');
       const label = document.getElementById('aiModeLabel');
-      if (inp) inp.placeholder = meta.hint;
+      if (inp)   inp.placeholder  = meta.hint;
       if (label) label.textContent = meta.label;
     });
 
-    // Watch app mode changes (patch switchMode)
+    // Wrap app's switchMode so we keep in sync
     const origSwitch = window.switchMode;
     if (typeof origSwitch === 'function') {
-      window.switchMode = function(mode) {
+      window.switchMode = function (mode) {
         origSwitch(mode);
         if (isOpen) syncMode();
       };
     }
-
-    // Poll mode changes if switchMode not ready yet
+    // Fallback polling for sync
     setInterval(() => { if (isOpen) syncMode(); }, 2000);
   }
 
-  // Boot after DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

@@ -85,7 +85,7 @@ async def _stream_assist(req: AssistRequest):
     messages.append({"role": "user", "content": req.message})
 
     import json
-    async for token in llm.stream(messages, temperature=0.5, max_tokens=512):
+    async for token in llm.stream(messages, temperature=0.5, max_tokens=2048):
         yield f"data: {json.dumps({'token': token})}\n\n"
 
     yield "data: [DONE]\n\n"
