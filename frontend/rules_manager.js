@@ -542,6 +542,11 @@ async function runCodeReview() {
     if (typeof showState === 'function') showState('panel-codereview-output');
     renderCodeReviewResult(result);
 
+    // Show "Saved to history" confirmation toast
+    if (typeof window._showHistoryToast === 'function') {
+      window._showHistoryToast(result.review_id ? '✓ Saved to history' : '✓ Review complete');
+    }
+
   } catch (err) {
     if (typeof clearStageAnimation === 'function') clearStageAnimation();
     if (typeof showState === 'function') showState('errorState');

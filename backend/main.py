@@ -27,8 +27,10 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.config import settings
+from backend.db.database import init_db
 from backend.routers.agent_router import router as agent_router
 from backend.routers.health_router import router as health_router
+from backend.routers.history_router import router as history_router
 from backend.routers.rules_router import router as rules_router
 from backend.routers.review_router import router as review_router
 from backend.routers.assist_router import router as assist_router
@@ -37,8 +39,14 @@ from backend.routers.assist_router import router as assist_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup / shutdown hooks."""
+    # Initialise SQLite database (creates tables if they don't exist)
+    try:
+        await init_db()
+        print("✓ Database initialised")
+    except Exception as exc:
+        print(f"⚠ Database init failed: {exc}")
+
     # Validate LLM provider is configured correctly at startup
-    # This fails fast rather than on first request
     try:
         from backend.llm import get_llm
         llm = get_llm()
@@ -77,6 +85,7 @@ app.include_router(health_router)
 app.include_router(agent_router)
 app.include_router(rules_router)
 app.include_router(review_router)
+app.include_router(history_router)
 app.include_router(assist_router)
 
 # Serve Frontend static assets

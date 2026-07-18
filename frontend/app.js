@@ -150,11 +150,19 @@ async function checkHealth() {
 
 /* ── Mode switch ─────────────────────────────────────────────────────────── */
 function switchMode(mode) {
+  // History is a drawer overlay — open it without changing the main panel
+  if (mode === 'history') {
+    if (typeof openHistoryDrawer === 'function') openHistoryDrawer();
+    // Don't update currentMode — keep the underlying panel visible
+    return;
+  }
+
   currentMode = mode;
   window.devAgentMode = mode;   // expose for assistant.js
 
-  // All tabs
+  // All tabs (excluding history — its active state is managed by the drawer)
   document.querySelectorAll('.mode-tab').forEach(function(t) {
+    if (t.dataset.mode === 'history') return; // managed by history.js
     var isActive = t.dataset.mode === mode;
     t.classList.toggle('active', isActive);
     t.setAttribute('aria-selected', String(isActive));

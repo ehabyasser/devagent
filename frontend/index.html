@@ -76,6 +76,20 @@
           </svg>
           Rules Manager
         </button>
+        <button
+          id="tab-history"
+          class="mode-tab"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-history-drawer"
+          data-mode="history"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          History
+        </button>
       </nav>
 
       <div class="header-status">
@@ -476,10 +490,84 @@ Acceptance Criteria:
 
   </main>
 
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       HISTORY SLIDE-OVER DRAWER
+       Full-screen overlay that slides in from the right when History tab clicked.
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="historyDrawer" class="history-drawer" aria-label="Review History" role="dialog" aria-modal="true">
+
+    <!-- Header -->
+    <div class="history-drawer-header">
+      <div class="history-drawer-title">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 6v4l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Review History
+      </div>
+      <button class="history-close-btn" id="historyCloseBtn" aria-label="Close history">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 4l10 10M14 4L4 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="history-stats-bar" id="historyStatsBar">
+      <div class="hist-stat">
+        <span class="hist-stat-val" id="hstatTotal">—</span>
+        <span class="hist-stat-lbl">Reviews</span>
+      </div>
+      <div class="hist-stat-divider"></div>
+      <div class="hist-stat">
+        <span class="hist-stat-val" id="hstatAvg">—</span>
+        <span class="hist-stat-lbl">Avg Score</span>
+      </div>
+      <div class="hist-stat-divider"></div>
+      <div class="hist-stat">
+        <span class="hist-stat-val" id="hstatApproved">—</span>
+        <span class="hist-stat-lbl">Approved</span>
+      </div>
+      <div class="hist-stat-divider"></div>
+      <div class="hist-stat">
+        <span class="hist-stat-val" id="hstatViolations">—</span>
+        <span class="hist-stat-lbl">Violations</span>
+      </div>
+      <div class="hist-stat-divider"></div>
+      <div class="hist-stat">
+        <span class="hist-stat-val" id="hstatWeek">—</span>
+        <span class="hist-stat-lbl">This Week</span>
+      </div>
+    </div>
+
+    <!-- Top-violated category banner -->
+    <div class="history-hotspot" id="historyHotspot" style="display:none">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+        <path d="M7 2v5M7 9v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      Most violated: <strong id="historyHotspotCat"></strong>
+    </div>
+
+    <!-- List -->
+    <div class="history-list" id="historyList">
+      <div class="history-empty" id="historyEmptyState">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <circle cx="24" cy="24" r="20" stroke="rgba(99,102,241,0.3)" stroke-width="1.5"/>
+          <path d="M24 14v10l5 5" stroke="rgba(99,102,241,0.5)" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <p>No reviews yet</p>
+        <span>Run a code review — it will appear here automatically</span>
+      </div>
+    </div>
+
+  </div>
+  <!-- History backdrop -->
+  <div class="history-backdrop" id="historyBackdrop"></div>
+
   <script src="FileSaver.min.js"></script>
   <script src="xlsx.min.js"></script>
   <script src="app.js"></script>
   <script src="rules_manager.js"></script>
   <script src="assistant.js"></script>
+  <script src="history.js"></script>
 </body>
 </html>
