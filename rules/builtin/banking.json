@@ -6,7 +6,7 @@
     "description": "All monetary amounts must use Decimal (or NSDecimalNumber), never Float or Double, to avoid floating-point precision errors.",
     "severity": "critical",
     "weight": 10,
-    "enabled": false,
+    "enabled": true,
     "auto_fix": true,
     "auto_fix_hint": "Replace Double/Float with Decimal for all monetary values",
     "tags": [
@@ -19,7 +19,7 @@
       "good": "var balance: Decimal = 1000.50\nvar fee: Decimal = 2.50\nlet total = balance + fee // ✅ Exact decimal arithmetic"
     },
     "custom": false,
-    "updated_at": "2026-07-18T10:15:43.156810+00:00"
+    "updated_at": "2026-07-18T10:38:55.686234+00:00"
   },
   {
     "id": "BANK-002",

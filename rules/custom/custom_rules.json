@@ -46,26 +46,41 @@
     }
   },
   {
-    "id": "CUSTOM-DE5CFE",
+    "id": "CUSTOM-51B3AB",
     "custom": true,
-    "created_at": "2026-07-18T10:17:17.386212+00:00",
-    "updated_at": "2026-07-18T10:17:17.386212+00:00",
-    "name": "Safe Handling of Weak UI Outlets",
-    "category": "ui_ux",
-    "description": "While IBOutlets or custom weak view references are common in UIKit, force-unwrapping them during asynchronous callbacks (like API response handling) can cause crashes if the user navigates away and the view controller is dismissed. Always use optional chaining or guard statements when updating weak UI elements.",
+    "created_at": "2026-07-18T10:34:13.025492+00:00",
+    "updated_at": "2026-07-18T10:34:13.025492+00:00",
+    "name": "Test Custom Rule",
+    "category": "custom",
+    "description": "This is a test custom rule description.",
     "severity": "medium",
-    "weight": 6,
+    "weight": 5,
     "enabled": true,
     "auto_fix": false,
     "auto_fix_hint": "",
-    "tags": [
-      "ui",
-      "uikit",
-      "crash-prevention"
-    ],
+    "tags": [],
     "examples": {
-      "bad": "weak var balanceLabel: UILabel?\n\nfunc updateBalance(to amount: String) {\n    DispatchQueue.main.async {\n        self.balanceLabel!.text = amount\n    }\n}",
-      "good": "weak var balanceLabel: UILabel?\n\nfunc updateBalance(to amount: String) {\n    DispatchQueue.main.async {\n        self.balanceLabel?.text = amount\n    }\n}"
+      "bad": "",
+      "good": ""
+    }
+  },
+  {
+    "id": "CUSTOM-BFA605",
+    "custom": true,
+    "created_at": "2026-07-18T11:05:22.179863+00:00",
+    "updated_at": "2026-07-18T11:05:22.179863+00:00",
+    "name": "No Hardcoded API Keys",
+    "category": "security",
+    "description": "API keys, secrets, and private tokens must never be hardcoded in the codebase. Use dynamic configuration or keychain storage instead.",
+    "severity": "critical",
+    "weight": 10,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "",
+    "tags": [],
+    "examples": {
+      "bad": "let apiKey = \"sk-live-5a43b2c1\"",
+      "good": "let apiKey = ProcessInfo.processInfo.environment[\"API_KEY\"]"
     }
   }
 ]

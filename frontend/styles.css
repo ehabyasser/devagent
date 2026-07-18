@@ -2153,3 +2153,54 @@ code {
 .ai-diff-block::-webkit-scrollbar { width: 4px; height: 4px; }
 .ai-diff-block::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 4px; }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CODE REVIEW — LAYOUT FIX (no-scroll, button always visible)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Make the CR agent-panel fill the input-panel vertically */
+#panel-codereview {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 14px;          /* tighter than the default 20px */
+}
+
+/* Panel header: no extra bottom margin */
+#panel-codereview .panel-header {
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+/* Diff textarea group grows to fill remaining space */
+#panel-codereview .form-group:has(#crDiffInput) {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+#crDiffInput {
+  flex: 1;
+  min-height: 120px;
+  max-height: 100%;   /* let flexbox control height */
+  resize: vertical;
+}
+
+/* Other form groups stay tight */
+#panel-codereview .form-group:not(:has(#crDiffInput)) {
+  flex-shrink: 0;
+}
+
+/* Active-rules info row and Run button never shrink */
+#panel-codereview .cr-active-rules-info,
+#panel-codereview #runCodeReview {
+  flex-shrink: 0;
+  margin-top: 0;
+}
+
+/* Input-panel should use flex column so children can grow */
+.input-panel {
+  display: flex;
+  flex-direction: column;
+}
+
