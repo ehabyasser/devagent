@@ -15,7 +15,6 @@ GET    /api/auth/me                    Get current user profile
 PATCH  /api/auth/me                    Update profile
 PATCH  /api/auth/me/password           Change password
 """
-from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
@@ -342,7 +341,7 @@ async def refresh_token(
 
 # ── LOGOUT ─────────────────────────────────────────────────────────────────────
 
-@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 async def logout(
     response: Response,
     refresh_token_cookie: Optional[str] = Cookie(default=None, alias="refresh_token"),
