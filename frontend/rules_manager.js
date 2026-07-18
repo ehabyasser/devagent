@@ -690,33 +690,83 @@ function renderViolationCard(v) {
 /* ── Excel Export ────────────────────────────────────────────────── */
 function exportReviewToExcel() {
   const result = window._lastCRResult;
-  if (!result) { alert('No review results to export.'); return; }
+  if (!result) { alert('Run a code review first — no results to export yet.'); return; }
 
-  // Sheet 1: Scores
-  const scoresData = [
-    ['Dimension', 'Score'],
-    ...Object.entries(SCORE_LABELS).map(([k, label]) => [label, result.scores[k] ?? 0]),
-    ['⭐ Overall', result.scores.overall ?? 0],
-  ];
+  const prName = (result.pr_title || 'PR').replace(/[^a-zA-Z0-9]/g, '_');
+  const ts     = new Date().toISOString().slice(0,16).replace(/[T:]/g,'-');
 
-  // Sheet 2: Violations
-  const violData = [
-    ['Rule ID','Rule Name','Category','Severity','Explanation','Business Impact','Suggested Fix','Code Snippet','Auto-Fix'],
+  // ── Try XLSX export ──────────────────────────────────────────────────────
+  if (typeof window.XLSX !== 'undefined' && typeof window.XLSX.utils !== 'undefined') {
+    try {
+      const XL = window.XLSX;
+
+      // Sheet 1 — Scores
+      const scoresData = [
+        ['Dimension', 'Score'],
+        ...Object.entries(SCORE_LABELS).map(([k, label]) => [label, result.scores[k] ?? 0]),
+        ['⭐ Overall', result.scores.overall ?? 0],
+      ];
+
+      // Sheet 2 — Violations
+      const violData = [
+        ['Rule ID','Rule Name','Category','Severity','Explanation','Business Impact','Suggested Fix','Code Snippet','Auto-Fix'],
+        ...(result.violations || []).map(v => [
+          v.rule_id, v.rule_name, v.category, v.severity,
+          v.explanation, v.business_impact, v.suggested_fix,
+          v.code_snippet, v.auto_fix_available ? 'Yes' : 'No',
+        ]),
+      ];
+
+      const wb = XL.utils.book_new();
+      XL.utils.book_append_sheet(wb, XL.utils.aoa_to_sheet(scoresData), 'Scores');
+      XL.utils.book_append_sheet(wb, XL.utils.aoa_to_sheet(violData),   'Violations');
+
+      const filename = `CodeReview_${prName}_${ts}.xlsx`;
+      const wbOut    = XL.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob     = new Blob([wbOut], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+      // Use FileSaver if available, otherwise native download
+      if (typeof window.saveAs === 'function') {
+        window.saveAs(blob, filename);
+      } else {
+        _triggerDownload(blob, filename);
+      }
+      return;
+    } catch (err) {
+      console.warn('XLSX export failed, falling back to CSV:', err);
+    }
+  }
+
+  // ── Fallback: CSV download (no external library needed) ──────────────────
+  _exportCSV(result, prName, ts);
+}
+
+function _exportCSV(result, prName, ts) {
+  const rows = [
+    ['Rule ID','Rule Name','Category','Severity','Explanation','Business Impact','Suggested Fix','Auto-Fix'],
     ...(result.violations || []).map(v => [
       v.rule_id, v.rule_name, v.category, v.severity,
       v.explanation, v.business_impact, v.suggested_fix,
-      v.code_snippet, v.auto_fix_available ? 'Yes' : 'No',
+      v.auto_fix_available ? 'Yes' : 'No',
     ]),
   ];
 
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(scoresData), 'Scores');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(violData), 'Violations');
-
-  const filename = `CodeReview_${(result.pr_title || 'PR').replace(/[^a-zA-Z0-9]/g,'_')}_${Date.now()}.xlsx`;
-  const wbOut = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-  saveAs(new Blob([wbOut], { type: 'application/octet-stream' }), filename);
+  const csv  = rows.map(r => r.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  _triggerDownload(blob, `CodeReview_${prName}_${ts}.csv`);
 }
+
+function _triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a   = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 5000);
+}
+
 
 /* ── Escape HTML helper ─────────────────────────────────────────── */
 function escHtml(str) {

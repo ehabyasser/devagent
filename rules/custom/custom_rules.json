@@ -82,5 +82,75 @@
       "bad": "let apiKey = \"sk-live-5a43b2c1\"",
       "good": "let apiKey = ProcessInfo.processInfo.environment[\"API_KEY\"]"
     }
+  },
+  {
+    "id": "CUSTOM-B7C203",
+    "custom": true,
+    "created_at": "2026-07-18T11:46:53.195400+00:00",
+    "updated_at": "2026-07-18T11:46:53.195400+00:00",
+    "name": "Do Not Cache Sensitive Financial Data in Memory",
+    "category": "security",
+    "description": "Sensitive banking data such as CVV, PINs, full primary account numbers (PAN), and session tokens must never be stored in long-lived in-memory caches like NSCache or global dictionaries. Storing this data in memory increases the risk of exposure via memory dump attacks or application state snapshots. Use secure enclaves or clear the memory immediately after use.",
+    "severity": "critical",
+    "weight": 10,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "",
+    "tags": [
+      "security",
+      "pci-dss",
+      "owasp",
+      "memory"
+    ],
+    "examples": {
+      "bad": "class AccountCache {\n    static let shared = NSCache<NSString, AnyObject>()\n    func cacheCardDetails(pan: String, cvv: String) {\n        let dict = [\"pan\": pan, \"cvv\": cvv] as NSDictionary\n        AccountCache.shared.setObject(dict, forKey: \"user_card\")\n    }\n}",
+      "good": "class AccountCache {\n    // Only cache non-sensitive display data, never CVV or raw PAN\n    static let shared = NSCache<NSString, NSString>()\n    func cacheMaskedAccount(maskedPan: String) {\n        AccountCache.shared.setObject(maskedPan as NSString, forKey: \"masked_pan\")\n    }\n}"
+    }
+  },
+  {
+    "id": "CUSTOM-A9275A",
+    "custom": true,
+    "created_at": "2026-07-18T11:46:55.343104+00:00",
+    "updated_at": "2026-07-18T11:46:55.343104+00:00",
+    "name": "Enforce Limits on NSCache Instances",
+    "category": "performance",
+    "description": "NSCache instances must have explicit limits configured for countLimit and totalCostLimit. Without these limits, the cache can grow unboundedly, consuming excessive system memory and leading to jetsam termination (OOM crashes) by the iOS operating system.",
+    "severity": "medium",
+    "weight": 5,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "",
+    "tags": [
+      "performance",
+      "memory-management",
+      "nscache"
+    ],
+    "examples": {
+      "bad": "let statementCache = NSCache<NSString, NSData>()\n// No limits set; cache can grow indefinitely",
+      "good": "let statementCache: NSCache<NSString, NSData> = {\n    let cache = NSCache<NSString, NSData>()\n    cache.countLimit = 50 // Max 50 statements\n    cache.totalCostLimit = 10 * 1024 * 1024 // Max 10 MB\n    return cache\n}()"
+    }
+  },
+  {
+    "id": "CUSTOM-6996F8",
+    "custom": true,
+    "created_at": "2026-07-18T11:46:56.518304+00:00",
+    "updated_at": "2026-07-18T11:46:56.518304+00:00",
+    "name": "Evict Memory Caches on Background and Memory Warnings",
+    "category": "memory_management",
+    "description": "In-memory caches must be cleared or reduced when the application receives memory warnings or enters the background. This prevents Out-Of-Memory (OOM) crashes and ensures that sensitive cached banking data is not written to disk during iOS background snapshotting.",
+    "severity": "high",
+    "weight": 7,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "",
+    "tags": [
+      "memory-management",
+      "backgrounding",
+      "oom"
+    ],
+    "examples": {
+      "bad": "class TransactionCache {\n    static let shared = NSCache<NSString, NSArray>()\n    // No observers registered to clear cache on memory warning or backgrounding\n}",
+      "good": "class TransactionCache {\n    static let shared = NSCache<NSString, NSArray>()\n    init() {\n        NotificationCenter.default.addObserver(self, selector: #selector(clearCache), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)\n        NotificationCenter.default.addObserver(self, selector: #selector(clearCache), name: UIApplication.didEnterBackgroundNotification, object: nil)\n    }\n    @objc private func clearCache() {\n        TransactionCache.shared.removeAllObjects()\n    }\n}"
+    }
   }
 ]
