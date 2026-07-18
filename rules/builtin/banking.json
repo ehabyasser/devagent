@@ -19,7 +19,7 @@
       "good": "var balance: Decimal = 1000.50\nvar fee: Decimal = 2.50\nlet total = balance + fee // ✅ Exact decimal arithmetic"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:32.604558+00:00"
+    "updated_at": "2026-07-18T10:15:43.156810+00:00"
   },
   {
     "id": "BANK-002",
@@ -41,7 +41,7 @@
       "good": "var request = URLRequest(url: paymentURL)\nrequest.httpMethod = \"POST\"\nrequest.setValue(UUID().uuidString, forHTTPHeaderField: \"Idempotency-Key\")"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:33.445379+00:00"
+    "updated_at": "2026-07-18T10:15:43.158669+00:00"
   },
   {
     "id": "BANK-003",
@@ -64,7 +64,7 @@
       "good": "func transfer(amount: Decimal, to: Account) async throws {\n  AuditLogger.log(.transferInitiated, amount: amount, destination: to.id)\n  do {\n    try await api.transfer(amount: amount, destination: to.id)\n    AuditLogger.log(.transferCompleted, amount: amount, destination: to.id)\n  } catch {\n    AuditLogger.log(.transferFailed, amount: amount, error: error)\n    throw error\n  }\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:34.653596+00:00"
+    "updated_at": "2026-07-18T10:15:43.160046+00:00"
   },
   {
     "id": "BANK-004",
@@ -86,7 +86,7 @@
       "good": "func initiateTransfer(amount: Decimal) async throws {\n  guard amount <= LimitPolicy.singleTransactionMax else {\n    throw TransferError.exceedsLimit\n  }\n  guard try await dailyLimitService.hasCapacity(for: amount) else {\n    throw TransferError.dailyLimitExceeded\n  }\n  try await api.transfer(amount: amount)\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:35.770866+00:00"
+    "updated_at": "2026-07-18T10:15:43.161176+00:00"
   },
   {
     "id": "BANK-005",
@@ -108,7 +108,7 @@
       "good": "override func viewWillAppear(_ animated: Bool) {\n  super.viewWillAppear(animated)\n  NotificationCenter.default.addObserver(self, selector: #selector(handleRecording),\n    name: UIScreen.capturedDidChangeNotification, object: nil)\n}\n@objc func handleRecording() {\n  sensitiveView.isHidden = UIScreen.main.isCaptured\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:36.938232+00:00"
+    "updated_at": "2026-07-18T10:15:43.162525+00:00"
   },
   {
     "id": "BANK-006",
@@ -130,6 +130,6 @@
       "good": "class SessionManager {\n  private var timer: Timer?\n  func resetTimer() {\n    timer?.invalidate()\n    timer = Timer.scheduledTimer(withTimeInterval: 300, repeats: false) { _ in\n      self.logout()\n    }\n  }\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:38.503460+00:00"
+    "updated_at": "2026-07-18T10:15:43.164246+00:00"
   }
 ]

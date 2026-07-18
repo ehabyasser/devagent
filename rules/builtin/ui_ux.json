@@ -19,7 +19,7 @@
       "good": "Button(action: pay) { Image(systemName: \"arrow.right\") }\n  .accessibilityLabel(\"Confirm Payment\")"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:37.770631+00:00"
+    "updated_at": "2026-07-18T10:15:43.192339+00:00"
   },
   {
     "id": "UIUX-002",
@@ -40,7 +40,7 @@
       "good": "Button(\"Pay\") {\n  Task {\n    viewModel.isLoading = true\n    defer { viewModel.isLoading = false }\n    try await viewModel.pay()\n  }\n}\nif viewModel.isLoading { ProgressView() }"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:38.654081+00:00"
+    "updated_at": "2026-07-18T10:15:43.193267+00:00"
   },
   {
     "id": "UIUX-003",
@@ -61,7 +61,7 @@
       "good": "Task {\n  do {\n    try await viewModel.transfer()\n  } catch {\n    errorMessage = error.localizedDescription\n    showError = true\n  }\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:39.452426+00:00"
+    "updated_at": "2026-07-18T10:15:43.194101+00:00"
   },
   {
     "id": "UIUX-004",
@@ -82,6 +82,6 @@
       "good": "let feedback = UINotificationFeedbackGenerator()\nfeedback.notificationOccurred(.success)"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:40.845471+00:00"
+    "updated_at": "2026-07-18T10:15:43.194893+00:00"
   }
 ]

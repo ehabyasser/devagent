@@ -19,7 +19,7 @@
       "good": "// In TransferFeeCalculatorTests:\nfunc testFeeCalculation() {\n  XCTAssertEqual(calculator.fee(for: 1000), Decimal(string: \"15\"))\n  XCTAssertEqual(calculator.fee(for: 0), 0)\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:32.485439+00:00"
+    "updated_at": "2026-07-18T10:15:43.190259+00:00"
   },
   {
     "id": "TEST-002",
@@ -41,7 +41,7 @@
       "good": "func testTransfer() async throws {\n  let mockAPI = MockPaymentAPI()\n  let vm = TransferViewModel(api: mockAPI)\n  try await vm.transfer(100)\n  XCTAssertTrue(mockAPI.transferCalled)\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:33.902720+00:00"
+    "updated_at": "2026-07-18T10:15:43.190711+00:00"
   },
   {
     "id": "TEST-003",
@@ -63,7 +63,7 @@
       "good": "// Also tests failures:\nfunc testLoginWithWrongPassword() async {\n  await XCTAssertThrowsError(try await authService.login(\"user\", \"wrong\"))\n}\nfunc testLoginWithEmptyCredentials() async {\n  await XCTAssertThrowsError(try await authService.login(\"\", \"\"))\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:34.828199+00:00"
+    "updated_at": "2026-07-18T10:15:43.191060+00:00"
   },
   {
     "id": "TEST-004",
@@ -85,6 +85,6 @@
       "good": "func testPaymentFlow() {\n  let app = XCUIApplication()\n  app.launch()\n  app.buttons[\"Pay\"].tap()\n  app.textFields[\"Amount\"].typeText(\"100\")\n  app.buttons[\"Confirm\"].tap()\n  XCTAssertTrue(app.staticTexts[\"Payment Successful\"].exists)\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:36.551941+00:00"
+    "updated_at": "2026-07-18T10:15:43.191540+00:00"
   }
 ]

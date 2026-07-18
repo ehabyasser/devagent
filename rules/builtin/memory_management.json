@@ -19,7 +19,7 @@
       "good": "class HomeViewModel {\n  var timer: Timer?\n  deinit {\n    timer?.invalidate()\n    NotificationCenter.default.removeObserver(self)\n  }\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:58.921122+00:00"
+    "updated_at": "2026-07-18T10:15:43.175999+00:00"
   },
   {
     "id": "MEM-002",
@@ -41,7 +41,7 @@
       "good": "private var cancellables = Set<AnyCancellable>()\n\nviewModel.$balance\n  .sink { [weak self] in self?.updateUI($0) }\n  .store(in: &cancellables)"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:59.837556+00:00"
+    "updated_at": "2026-07-18T10:15:43.177494+00:00"
   },
   {
     "id": "MEM-003",
@@ -63,6 +63,6 @@
       "good": "let image = downsample(imageAt: url, to: targetSize) // Uses ImageIO for efficiency"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:01.754476+00:00"
+    "updated_at": "2026-07-18T10:15:43.178528+00:00"
   }
 ]

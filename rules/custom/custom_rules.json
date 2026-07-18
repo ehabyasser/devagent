@@ -1,0 +1,71 @@
+[
+  {
+    "id": "CUSTOM-6514A6",
+    "custom": true,
+    "created_at": "2026-07-18T10:17:03.357508+00:00",
+    "updated_at": "2026-07-18T10:17:03.357508+00:00",
+    "name": "No Force Unwrapping of Weak References",
+    "category": "swift_best_practices",
+    "description": "Force-unwrapping a weak variable using the '!' operator triggers a runtime crash if the referenced object has already been deallocated. In a banking application, this leads to unexpected application termination, disrupting user sessions and potentially leaving transactions in an indeterminate state. Always use optional binding (guard let/if let) or optional chaining.",
+    "severity": "high",
+    "weight": 8,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "",
+    "tags": [
+      "crash-prevention",
+      "memory-management",
+      "safety"
+    ],
+    "examples": {
+      "bad": "weak var delegate: TransactionDelegate?\n\nfunc completePayment() {\n    delegate!.transactionDidComplete(receiptId: \"12345\")\n}",
+      "good": "weak var delegate: TransactionDelegate?\n\nfunc completePayment() {\n    delegate?.transactionDidComplete(receiptId: \"12345\")\n}"
+    }
+  },
+  {
+    "id": "CUSTOM-793194",
+    "custom": true,
+    "created_at": "2026-07-18T10:17:14.145649+00:00",
+    "updated_at": "2026-07-18T10:17:14.145649+00:00",
+    "name": "Safe Weak Delegate Invocation in Banking Flows",
+    "category": "banking",
+    "description": "Delegates handling sensitive banking operations (such as MFA verification, fund transfers, or account provisioning) are typically declared weak to avoid retain cycles. Force-unwrapping these delegates can cause crashes mid-transaction. If the delegate is nil, gracefully handle the state or log a non-fatal diagnostic event instead of crashing.",
+    "severity": "critical",
+    "weight": 9,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "",
+    "tags": [
+      "banking",
+      "reliability",
+      "delegates"
+    ],
+    "examples": {
+      "bad": "weak var authCoordinator: AuthenticationCoordinator?\n\nfunc onPinEntered(_ pin: String) {\n    authCoordinator!.verifyAndSubmit(pin: pin)\n}",
+      "good": "weak var authCoordinator: AuthenticationCoordinator?\n\nfunc onPinEntered(_ pin: String) {\n    guard let coordinator = authCoordinator else {\n        assertionFailure(\"Authentication coordinator was deallocated prematurely.\")\n        return\n    }\n    coordinator.verifyAndSubmit(pin: pin)\n}"
+    }
+  },
+  {
+    "id": "CUSTOM-DE5CFE",
+    "custom": true,
+    "created_at": "2026-07-18T10:17:17.386212+00:00",
+    "updated_at": "2026-07-18T10:17:17.386212+00:00",
+    "name": "Safe Handling of Weak UI Outlets",
+    "category": "ui_ux",
+    "description": "While IBOutlets or custom weak view references are common in UIKit, force-unwrapping them during asynchronous callbacks (like API response handling) can cause crashes if the user navigates away and the view controller is dismissed. Always use optional chaining or guard statements when updating weak UI elements.",
+    "severity": "medium",
+    "weight": 6,
+    "enabled": true,
+    "auto_fix": false,
+    "auto_fix_hint": "",
+    "tags": [
+      "ui",
+      "uikit",
+      "crash-prevention"
+    ],
+    "examples": {
+      "bad": "weak var balanceLabel: UILabel?\n\nfunc updateBalance(to amount: String) {\n    DispatchQueue.main.async {\n        self.balanceLabel!.text = amount\n    }\n}",
+      "good": "weak var balanceLabel: UILabel?\n\nfunc updateBalance(to amount: String) {\n    DispatchQueue.main.async {\n        self.balanceLabel?.text = amount\n    }\n}"
+    }
+  }
+]

@@ -20,7 +20,7 @@
       "good": "// Use only https:// URLs; remove ATS exceptions from Info.plist"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:02.570029+00:00"
+    "updated_at": "2026-07-18T10:15:43.179083+00:00"
   },
   {
     "id": "NET-002",
@@ -42,7 +42,7 @@
       "good": "let config = URLSessionConfiguration.default\nconfig.timeoutIntervalForRequest = 15\nconfig.timeoutIntervalForResource = 30\nlet session = URLSession(configuration: config)"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:04.011102+00:00"
+    "updated_at": "2026-07-18T10:15:43.179595+00:00"
   },
   {
     "id": "NET-003",
@@ -64,7 +64,7 @@
       "good": "try await RetryPolicy.exponential(maxAttempts: 3) { try await api.fetch() }"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:04.903268+00:00"
+    "updated_at": "2026-07-18T10:15:43.180123+00:00"
   },
   {
     "id": "NET-004",
@@ -85,6 +85,6 @@
       "good": "do {\n  let (data, response) = try await URLSession.shared.data(from: url)\n  guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw APIError.badStatus }\n  return try JSONDecoder().decode(T.self, from: data)\n} catch let error as URLError { throw NetworkError.connection(error) }\n  catch { throw NetworkError.unknown(error) }"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:06.278142+00:00"
+    "updated_at": "2026-07-18T10:15:43.180512+00:00"
   }
 ]

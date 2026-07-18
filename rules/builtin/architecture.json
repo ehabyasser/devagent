@@ -6,7 +6,7 @@
     "description": "A class or struct should have only one reason to change. Classes with >3 distinct responsibilities should be split.",
     "severity": "high",
     "weight": 8,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Extract responsibilities into dedicated types/services",
     "tags": [
@@ -18,7 +18,7 @@
       "good": "class AuthService { func login() {} }\nclass DataService { func fetchData() {} }\nclass AnalyticsService { func log() {} }"
     },
     "custom": false,
-    "updated_at": "2026-07-18T00:06:23.103287+00:00"
+    "updated_at": "2026-07-18T10:15:43.146425+00:00"
   },
   {
     "id": "ARCH-002",
@@ -27,7 +27,7 @@
     "description": "Avoid accessing global singletons directly inside business logic. Prefer constructor injection for testability.",
     "severity": "medium",
     "weight": 7,
-    "enabled": true,
+    "enabled": false,
     "auto_fix": false,
     "auto_fix_hint": "Pass dependencies via initializer or property injection",
     "tags": [
@@ -39,7 +39,7 @@
       "good": "class ViewModel {\n  let network: NetworkProtocol\n  init(network: NetworkProtocol) { self.network = network }\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-18T00:06:24.060943+00:00"
+    "updated_at": "2026-07-18T10:15:43.149813+00:00"
   },
   {
     "id": "ARCH-003",
@@ -61,7 +61,7 @@
       "good": "protocol PaymentServiceProtocol { func charge(amount: Decimal) async throws }\nclass PaymentViewModel {\n  let service: PaymentServiceProtocol\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:26.845556+00:00"
+    "updated_at": "2026-07-18T10:15:43.151926+00:00"
   },
   {
     "id": "ARCH-004",
@@ -82,7 +82,7 @@
       "good": "struct TransactionView: View {\n  @StateObject var vm: TransactionViewModel\n  var body: some View {\n    Button(\"Pay\") { vm.pay() }\n  }\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:29.279722+00:00"
+    "updated_at": "2026-07-18T10:15:43.153446+00:00"
   },
   {
     "id": "ARCH-005",
@@ -103,6 +103,6 @@
       "good": "// Communicate via AppCoordinator.shared.showTransfer()"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:31.186754+00:00"
+    "updated_at": "2026-07-18T10:15:43.154981+00:00"
   }
 ]

@@ -19,7 +19,7 @@
       "good": "let apiKey = ProcessInfo.processInfo.environment[\"API_KEY\"] ?? \"\"\n// Or: KeychainHelper.shared.read(key: \"api_key\")"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:15.570398+00:00"
+    "updated_at": "2026-07-18T10:15:43.184243+00:00"
   },
   {
     "id": "SEC-002",
@@ -41,7 +41,7 @@
       "good": "class PinnedSession: NSObject, URLSessionDelegate {\n  func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge,\n    completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {\n    // Validate server certificate against pinned cert\n  }\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:17.145756+00:00"
+    "updated_at": "2026-07-18T10:15:43.184974+00:00"
   },
   {
     "id": "SEC-003",
@@ -63,7 +63,7 @@
       "good": "try KeychainHelper.shared.save(authToken, key: \"auth_token\")"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:18.054348+00:00"
+    "updated_at": "2026-07-18T10:15:43.185593+00:00"
   },
   {
     "id": "SEC-004",
@@ -84,7 +84,7 @@
       "good": "if JailbreakDetector.isJailbroken() {\n  showSecurityAlert()\n  exit(0)\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:19.386459+00:00"
+    "updated_at": "2026-07-18T10:15:43.186316+00:00"
   },
   {
     "id": "SEC-005",
@@ -105,7 +105,7 @@
       "good": "guard let text = textField.text,\n      let amount = Decimal(string: text),\n      amount > 0, amount <= maxTransferLimit else {\n  showError(\"Invalid amount\")\n  return\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:20.145299+00:00"
+    "updated_at": "2026-07-18T10:15:43.186872+00:00"
   },
   {
     "id": "SEC-006",
@@ -126,6 +126,6 @@
       "good": "#if DEBUG\nlog.debug(\"Auth completed\")\n#endif"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:21.319192+00:00"
+    "updated_at": "2026-07-18T10:15:43.187560+00:00"
   }
 ]

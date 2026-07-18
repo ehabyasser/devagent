@@ -367,6 +367,16 @@ Acceptance Criteria:
           <span id="rulesActiveCount" class="rules-count-badge">0 active</span>
         </div>
         <div class="rules-toolbar-right">
+          <!-- Status filter pills -->
+          <div class="rules-status-filter" id="rulesStatusFilter" role="group" aria-label="Filter by status">
+            <button class="status-pill active" data-status="all">All</button>
+            <button class="status-pill" data-status="enabled">
+              <span class="status-dot status-dot-on"></span>Enabled
+            </button>
+            <button class="status-pill" data-status="disabled">
+              <span class="status-dot status-dot-off"></span>Disabled
+            </button>
+          </div>
           <input type="text" id="rulesSearch" class="rules-search" placeholder="Search rules…" aria-label="Search rules"/>
           <button class="btn-primary rules-new-btn" id="openNewRuleModal">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>

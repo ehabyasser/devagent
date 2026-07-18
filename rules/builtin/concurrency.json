@@ -19,7 +19,7 @@
       "good": "Task {\n  let user = try await api.fetchUser()\n  await MainActor.run { self.nameLabel.text = user.name }\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:46.795785+00:00"
+    "updated_at": "2026-07-18T10:15:43.169636+00:00"
   },
   {
     "id": "CONC-002",
@@ -40,7 +40,7 @@
       "good": "Task.detached(priority: .background) {\n  let result = await heavyComputation()\n  await MainActor.run { self.update(result) }\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:47.737121+00:00"
+    "updated_at": "2026-07-18T10:15:43.170438+00:00"
   },
   {
     "id": "CONC-003",
@@ -62,7 +62,7 @@
       "good": "actor Cache {\n  private var data: [String: Any] = [:]\n  func set(_ value: Any, for key: String) { data[key] = value }\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:48.869925+00:00"
+    "updated_at": "2026-07-18T10:15:43.171311+00:00"
   },
   {
     "id": "CONC-004",
@@ -83,7 +83,7 @@
       "good": "Task {\n  for item in largeList {\n    try Task.checkCancellation()\n    process(item)\n  }\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:50.602598+00:00"
+    "updated_at": "2026-07-18T10:15:43.172508+00:00"
   },
   {
     "id": "CONC-005",
@@ -105,6 +105,6 @@
       "good": "Task {\n  let (data, _) = try await URLSession.shared.data(from: remoteURL)\n  await MainActor.run { self.processData(data) }\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:54.154121+00:00"
+    "updated_at": "2026-07-18T10:15:43.173395+00:00"
   }
 ]

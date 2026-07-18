@@ -18,7 +18,7 @@
       "good": "func fetchUser() async throws -> User {\n  let (data, _) = try await URLSession.shared.data(from: url)\n  return try JSONDecoder().decode(User.self, from: data)\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:22.377493+00:00"
+    "updated_at": "2026-07-18T10:15:43.187966+00:00"
   },
   {
     "id": "SWIFT-002",
@@ -39,7 +39,7 @@
       "good": "guard let text = textField.text, let amount = Double(text) else { return }\nguard let cell = tableView.dequeueReusableCell(withIdentifier: \"Cell\") else { return }"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:27.785901+00:00"
+    "updated_at": "2026-07-18T10:15:43.188436+00:00"
   },
   {
     "id": "SWIFT-003",
@@ -60,7 +60,7 @@
       "good": "struct Transaction: Codable, Equatable {\n  let amount: Decimal\n  let date: Date\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:29.002389+00:00"
+    "updated_at": "2026-07-18T10:15:43.188972+00:00"
   },
   {
     "id": "SWIFT-004",
@@ -81,7 +81,7 @@
       "good": "final class AuthManager {\n  private var token: String = \"\"\n  internal func refresh() {}\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:30.752848+00:00"
+    "updated_at": "2026-07-18T10:15:43.189439+00:00"
   },
   {
     "id": "SWIFT-005",
@@ -103,6 +103,6 @@
       "good": "viewModel.onSuccess = { [weak self] in\n  guard let self = self else { return }\n  self.updateUI()\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:52:31.634649+00:00"
+    "updated_at": "2026-07-18T10:15:43.189757+00:00"
   }
 ]

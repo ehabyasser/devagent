@@ -166,13 +166,52 @@
     return d;
   }
 
-  /* ── Finalize streaming bubble ────────────────────────────────────────── */
+  /* ── Detect if response is a git diff ─────────────────────────── */
+  function isGitDiff(text) {
+    const t = text.trim();
+    return t.startsWith('diff --git') || t.startsWith('--- a/') || t.startsWith('--- /dev/null');
+  }
+
+  /* ── Finalize streaming bubble ──────────────────────────────────── */
   function finalizeAssistantBubble(id, fullText) {
     const textEl    = document.getElementById(id + '-text');
     const actionsEl = document.getElementById(id + '-actions');
-    if (textEl)    textEl.innerHTML = fmt(fullText);
-    if (actionsEl) actionsEl.style.display = '';
+    const isDiff    = isGitDiff(fullText);
 
+    if (textEl) {
+      if (isDiff) {
+        // Render raw diff in a scrollable code block
+        textEl.innerHTML = `
+          <div class="ai-diff-label">📄 Git Diff — paste into Code Review</div>
+          <pre class="ai-diff-block">${esc(fullText)}</pre>`;
+      } else {
+        textEl.innerHTML = fmt(fullText);
+      }
+    }
+
+    if (actionsEl) {
+      // Build action buttons: always Copy, then context-specific
+      const copyBtn   = actionsEl.querySelector('.ai-copy-btn');
+      const insertBtn = actionsEl.querySelector('.ai-insert-btn');
+
+      if (isDiff && insertBtn) {
+        // Replace "Insert" with "Use as Diff"
+        insertBtn.innerHTML = `
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <path d="M9 17H5a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M14 17l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Use as Diff`;
+        insertBtn.title = 'Insert into Code Review diff field';
+        insertBtn.style.background = 'rgba(99,102,241,0.15)';
+        insertBtn.style.borderColor = 'rgba(99,102,241,0.4)';
+        insertBtn.style.color = '#818cf8';
+      }
+
+      actionsEl.style.display = '';
+    }
+
+    // Copy button
     actionsEl?.querySelector('.ai-copy-btn')?.addEventListener('click', function () {
       navigator.clipboard.writeText(fullText).then(() => {
         this.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/></svg> Copied!`;
@@ -181,21 +220,40 @@
       });
     });
 
+    // Insert / Use as Diff button
     actionsEl?.querySelector('.ai-insert-btn')?.addEventListener('click', function () {
-      const fieldId = MODE_META[currentMode]?.field;
-      const field   = fieldId ? document.getElementById(fieldId) : null;
-      if (field) {
-        field.value = fullText;
-        field.dispatchEvent(new Event('input', { bubbles: true }));
-        field.focus();
-        if (typeof switchMode === 'function') switchMode(currentMode);
+      if (isDiff) {
+        // Insert into diff field and switch to code review tab
+        const diffField = document.getElementById('crDiffInput');
+        if (diffField) {
+          diffField.value = fullText;
+          diffField.dispatchEvent(new Event('input', { bubbles: true }));
+          diffField.focus();
+        }
+        if (typeof switchMode === 'function') switchMode('codereview');
         this.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/></svg> Inserted!`;
         this.style.color = '#22c55e';
-        setTimeout(() => { this.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Insert`; this.style.color = ''; }, 2000);
+        setTimeout(() => {
+          this.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 17H5a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 17l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Use as Diff`;
+          this.style.color = '#818cf8';
+        }, 2000);
       } else {
-        navigator.clipboard.writeText(fullText);
-        this.textContent = 'Copied!';
-        setTimeout(() => { this.textContent = 'Insert'; }, 2000);
+        // Normal insert into mode field
+        const fieldId = MODE_META[currentMode]?.field;
+        const field   = fieldId ? document.getElementById(fieldId) : null;
+        if (field) {
+          field.value = fullText;
+          field.dispatchEvent(new Event('input', { bubbles: true }));
+          field.focus();
+          if (typeof switchMode === 'function') switchMode(currentMode);
+          this.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/></svg> Inserted!`;
+          this.style.color = '#22c55e';
+          setTimeout(() => { this.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Insert`; this.style.color = ''; }, 2000);
+        } else {
+          navigator.clipboard.writeText(fullText);
+          this.textContent = 'Copied!';
+          setTimeout(() => { this.textContent = 'Insert'; }, 2000);
+        }
       }
     });
   }

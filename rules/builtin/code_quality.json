@@ -18,7 +18,7 @@
       "good": "func processPayment() {\n  let validated = validateInput()\n  let result = submitToGateway(validated)\n  updateUI(with: result)\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:39.712791+00:00"
+    "updated_at": "2026-07-18T10:15:43.165870+00:00"
   },
   {
     "id": "CODE-002",
@@ -39,7 +39,7 @@
       "good": "private static let highValueThreshold: Decimal = 50000\nif amount > Self.highValueThreshold { requireAdditionalAuth() }"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:41.862069+00:00"
+    "updated_at": "2026-07-18T10:15:43.167088+00:00"
   },
   {
     "id": "CODE-003",
@@ -60,7 +60,7 @@
       "good": "// Removed TODO — tracked in BANK-4521"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:42.729013+00:00"
+    "updated_at": "2026-07-18T10:15:43.168170+00:00"
   },
   {
     "id": "CODE-004",
@@ -81,6 +81,6 @@
       "good": "let accountBalance = api.fetchBalance()\nlet formattedDate = formatter.string(from: transactionDate)"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:45.935821+00:00"
+    "updated_at": "2026-07-18T10:15:43.168911+00:00"
   }
 ]

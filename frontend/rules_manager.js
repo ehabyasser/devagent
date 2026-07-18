@@ -7,10 +7,11 @@
 'use strict';
 
 /* ── State ─────────────────────────────────────────────────────────── */
-let allRules = [];
-let selectedCategory = 'all';
-let selectedRuleIds  = new Set();   // tracks checked rule IDs
-let currentFilteredRules = [];      // last rendered set for select-all
+let allRules             = [];
+let selectedCategory     = 'all';
+let selectedRuleIds      = new Set();   // tracks checked rule IDs
+let currentFilteredRules = [];          // last rendered set for select-all
+let statusFilter         = 'all';       // 'all' | 'enabled' | 'disabled'
 
 const SEVERITY_ORDER = ['critical', 'high', 'medium', 'low', 'info'];
 const SEVERITY_COLORS = {
@@ -77,9 +78,20 @@ function renderSidebar() {
 function applyFilters() {
   const search = (document.getElementById('rulesSearch')?.value || '').toLowerCase();
   let filtered = allRules;
+
+  // Category filter
   if (selectedCategory !== 'all') {
     filtered = filtered.filter(r => r.category === selectedCategory);
   }
+
+  // Status filter
+  if (statusFilter === 'enabled') {
+    filtered = filtered.filter(r => r.enabled);
+  } else if (statusFilter === 'disabled') {
+    filtered = filtered.filter(r => !r.enabled);
+  }
+
+  // Text search
   if (search) {
     filtered = filtered.filter(r =>
       r.name.toLowerCase().includes(search) ||
@@ -279,6 +291,15 @@ async function bulkDelete() {
 /* ── Search + Bulk Action Bar ────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('rulesSearch')?.addEventListener('input', applyFilters);
+
+  // Status filter pills
+  document.getElementById('rulesStatusFilter')?.addEventListener('click', (e) => {
+    const pill = e.target.closest('.status-pill');
+    if (!pill) return;
+    statusFilter = pill.dataset.status;
+    document.querySelectorAll('.status-pill').forEach(p => p.classList.toggle('active', p === pill));
+    applyFilters();
+  });
 
   // Select All checkbox
   document.getElementById('selectAllRules')?.addEventListener('change', function () {
