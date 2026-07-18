@@ -410,6 +410,7 @@ async function runCodeReview() {
       btn.querySelector('.btn-text').textContent = 'Run Code Review';
     }
   }
+}
 
 function renderCodeReviewResult(result) {
   // Title + approved badge
