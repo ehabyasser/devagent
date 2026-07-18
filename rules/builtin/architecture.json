@@ -6,7 +6,7 @@
     "description": "A class or struct should have only one reason to change. Classes with >3 distinct responsibilities should be split.",
     "severity": "high",
     "weight": 8,
-    "enabled": false,
+    "enabled": true,
     "auto_fix": false,
     "auto_fix_hint": "Extract responsibilities into dedicated types/services",
     "tags": [
@@ -18,7 +18,7 @@
       "good": "class AuthService { func login() {} }\nclass DataService { func fetchData() {} }\nclass AnalyticsService { func log() {} }"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:23.896263+00:00"
+    "updated_at": "2026-07-18T00:06:23.103287+00:00"
   },
   {
     "id": "ARCH-002",
@@ -27,7 +27,7 @@
     "description": "Avoid accessing global singletons directly inside business logic. Prefer constructor injection for testability.",
     "severity": "medium",
     "weight": 7,
-    "enabled": false,
+    "enabled": true,
     "auto_fix": false,
     "auto_fix_hint": "Pass dependencies via initializer or property injection",
     "tags": [
@@ -39,7 +39,7 @@
       "good": "class ViewModel {\n  let network: NetworkProtocol\n  init(network: NetworkProtocol) { self.network = network }\n}"
     },
     "custom": false,
-    "updated_at": "2026-07-17T23:51:25.070473+00:00"
+    "updated_at": "2026-07-18T00:06:24.060943+00:00"
   },
   {
     "id": "ARCH-003",
